@@ -53,6 +53,7 @@ function createTokenValue(
     type: tokenType,
     collection: collections?.find((c) => c.persistentId === token.collectionId)
       ?.name,
+    collectionId: token.collectionId,
     ...description,
   };
 }
