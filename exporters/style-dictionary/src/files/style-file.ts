@@ -35,7 +35,8 @@ import { ThemeExportStyle, TokenNameStructure } from "../../config";
 function createTokenValue(
   value: string,
   token: Token,
-  theme?: TokenTheme
+  theme?: TokenTheme,
+  collections?: Array<DesignSystemCollection>
 ): any {
   const baseValue = value.replace(/['"]/g, "");
   const description =
@@ -50,7 +51,8 @@ function createTokenValue(
   return {
     value: baseValue,
     type: tokenType,
-    collection: token.collectionId,
+    collection: collections?.find((c) => c.persistentId === token.collectionId)
+      ?.name,
     ...description,
   };
 }
@@ -213,7 +215,7 @@ export function styleOutputFile(
     const hierarchicalObject = createHierarchicalStructure(
       token.tokenPath || [],
       token.name,
-      createTokenValue(value, token, theme),
+      createTokenValue(value, token, theme, collections),
       token,
       collections
     );
