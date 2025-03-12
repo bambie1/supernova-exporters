@@ -5,6 +5,7 @@ import {
   AnyOutputFile,
   TokenType,
   TokenTheme,
+  Token,
 } from "@supernovaio/sdk-exporters";
 import { ExporterConfiguration, ThemeExportStyle } from "../config";
 import { styleOutputFile } from "./files/style-file";
@@ -180,6 +181,15 @@ Pulsar.export(
               tokens,
               [theme]
             );
+
+            const expandedThemedTokens = themedTokens.map(
+              (token) =>
+                ({
+                  ...token,
+                  collectionId: "my custom ID",
+                }) as Token
+            );
+
             const themePath = ThemeHelper.getThemeIdentifier(
               theme,
               StringCase.camelCase
@@ -187,7 +197,7 @@ Pulsar.export(
             return Object.values(TokenType).map((type) =>
               styleOutputFile(
                 type,
-                themedTokens,
+                expandedThemedTokens,
                 tokenGroups,
                 themePath,
                 theme,
