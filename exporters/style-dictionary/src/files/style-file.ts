@@ -46,39 +46,11 @@ function createTokenValue(
   // Get the token type, forcing a return value even when prefixes are disabled
   const tokenType = getTokenPrefix(token.tokenType, true);
 
-  // For nested themes style, create an object with theme-specific values
-  if (exportConfiguration.exportThemesAs === ThemeExportStyle.NestedThemes) {
-    const valueObject = {};
-
-    // Include base value only when processing base tokens (no theme)
-    // This ensures base values only come from the base file
-    if (!theme && exportConfiguration.exportBaseValues) {
-      valueObject["base"] = {
-        value: baseValue,
-        type: "baseType",
-      };
-    }
-
-    // Add themed value if theme is provided
-    if (theme) {
-      valueObject[ThemeHelper.getThemeIdentifier(theme, StringCase.kebabCase)] =
-        {
-          value: baseValue,
-          type: "themeType",
-        };
-    }
-
-    // Add description last
-    return {
-      ...valueObject,
-      ...description,
-    };
-  }
-
   // Default case - return simple value object with type
   return {
     value: baseValue,
     type: tokenType,
+    collection: token.collectionId,
     ...description,
   };
 }
