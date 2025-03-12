@@ -55,7 +55,7 @@ function createTokenValue(
     if (!theme && exportConfiguration.exportBaseValues) {
       valueObject["base"] = {
         value: baseValue,
-        type: tokenType,
+        type: "baseType",
       };
     }
 
@@ -64,7 +64,7 @@ function createTokenValue(
       valueObject[ThemeHelper.getThemeIdentifier(theme, StringCase.kebabCase)] =
         {
           value: baseValue,
-          // type: tokenType
+          type: "themeType",
         };
     }
 
