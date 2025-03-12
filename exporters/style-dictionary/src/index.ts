@@ -186,7 +186,8 @@ Pulsar.export(
               (token) =>
                 ({
                   ...token,
-                  collectionId: "my custom ID",
+                  collectionId: tokens.find((t) => t.id === token.id)
+                    ?.collectionId,
                 }) as Token
             );
 
