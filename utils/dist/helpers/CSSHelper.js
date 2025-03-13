@@ -45,7 +45,7 @@ class CSSHelper {
             case sdk_exporters_1.TokenType.typography:
                 return this.typographyTokenValueToCSS(token.value, allTokens, options);
             default:
-                throw new sdk_exporters_1.UnreachableCaseError(token.tokenType, 'Unsupported token type for transformation to CSS:');
+                throw new sdk_exporters_1.UnreachableCaseError(token.tokenType, "Unsupported token type for transformation to CSS:");
         }
     }
     static colorTokenValueToCSS(color, allTokens, options) {
@@ -60,13 +60,15 @@ class CSSHelper {
             width: this.dimensionTokenValueToCSS(border.width, allTokens, options),
             style: this.borderStyleToCSS(border.style),
             color: this.colorTokenValueToCSS(border.color, allTokens, options),
-            position: this.borderPositionToCSS(border.position) // Not used for now
+            position: this.borderPositionToCSS(border.position), // Not used for now
         };
         return `${data.width} ${data.style} ${data.color}`;
     }
     static gradientTokenValueToCSS(gradients, allTokens, options) {
         // Export each layer of the gradient separately, then join the CSS background
-        return gradients.map((gradient) => this.gradientLayerToCSS(gradient, allTokens, options)).join(', ');
+        return gradients
+            .map((gradient) => this.gradientLayerToCSS(gradient, allTokens, options))
+            .join(", ");
     }
     /** Converts gradient token value to css definition */
     static gradientLayerToCSS(value, allTokens, options) {
@@ -96,16 +98,16 @@ class CSSHelper {
             // right to left is 180deg but should be -90deg
             return deg - 270;
         };
-        let gradientType = '';
+        let gradientType = "";
         switch (value.type) {
             case sdk_exporters_1.GradientType.linear:
                 gradientType = `linear-gradient(${getAngle()}deg, `;
                 break;
             case sdk_exporters_1.GradientType.radial:
-                gradientType = 'radial-gradient(circle, ';
+                gradientType = "radial-gradient(circle, ";
                 break;
             case sdk_exporters_1.GradientType.angular:
-                gradientType = 'conic-gradient(';
+                gradientType = "conic-gradient(";
                 break;
             default:
                 gradientType = `linear-gradient(${getAngle()}deg, `;
@@ -116,7 +118,7 @@ class CSSHelper {
             .map((stop) => {
             return `${this.colorTokenValueToCSS(stop.color, allTokens, options)} ${ColorHelper_1.ColorHelper.roundToDecimals(stop.position * 100, options.decimals)}%`;
         })
-            .join(', ');
+            .join(", ");
         return `${gradientType}${stops})`;
     }
     static dimensionTokenValueToCSS(dimension, allTokens, options) {
@@ -133,7 +135,9 @@ class CSSHelper {
         return `${ColorHelper_1.ColorHelper.roundToDecimals(dimension.measure, options.decimals)}${this.unitToCSS(dimension.unit)}`;
     }
     static shadowTokenValueToCSS(shadows, allTokens, options) {
-        return shadows.map((layer) => this.shadowLayerToCSS(layer, allTokens, options)).join(', ');
+        return shadows
+            .map((layer) => this.shadowLayerToCSS(layer, allTokens, options))
+            .join(", ");
     }
     static shadowLayerToCSS(value, allTokens, options) {
         const reference = (0, TokenHelper_1.sureOptionalReference)(value.referencedTokenId, allTokens, options.allowReferences);
@@ -149,9 +153,9 @@ class CSSHelper {
             }
             return `${px}px`;
         };
-        return `${value.type === sdk_exporters_1.ShadowType.inner ? 'inset ' : ''}${convertToRem(value.x)} ${convertToRem(value.y)} ${convertToRem(value.radius)} ${convertToRem(value.spread)} ${this.colorTokenValueToCSS({
+        return `${value.type === sdk_exporters_1.ShadowType.inner ? "inset " : ""}${convertToRem(value.x)} ${convertToRem(value.y)} ${convertToRem(value.radius)} ${convertToRem(value.spread)} ${this.colorTokenValueToCSS({
             ...value.color,
-            ...(value.opacity && { opacity: value.opacity })
+            ...(value.opacity && { opacity: value.opacity }),
         }, allTokens, options)}`;
     }
     static fontWeightTokenValueToCSS(value, allTokens, options) {
@@ -173,37 +177,37 @@ class CSSHelper {
         }
         // Map common weight names to their numeric values
         switch (normalizedText) {
-            case 'thin':
+            case "thin":
                 return 100;
-            case 'hairline':
+            case "hairline":
                 return 100;
-            case 'extra light':
-            case 'extralight':
-            case 'ultra light':
-            case 'ultralight':
+            case "extra light":
+            case "extralight":
+            case "ultra light":
+            case "ultralight":
                 return 200;
-            case 'light':
+            case "light":
                 return 300;
-            case 'normal':
-            case 'regular':
-            case 'book':
+            case "normal":
+            case "regular":
+            case "book":
                 return 400;
-            case 'medium':
+            case "medium":
                 return 500;
-            case 'semi bold':
-            case 'semibold':
-            case 'demi bold':
-            case 'demibold':
+            case "semi bold":
+            case "semibold":
+            case "demi bold":
+            case "demibold":
                 return 600;
-            case 'bold':
+            case "bold":
                 return 700;
-            case 'extra bold':
-            case 'extrabold':
-            case 'ultra bold':
-            case 'ultrabold':
+            case "extra bold":
+            case "extrabold":
+            case "ultra bold":
+            case "ultrabold":
                 return 800;
-            case 'black':
-            case 'heavy':
+            case "black":
+            case "heavy":
                 return 900;
             default:
                 // Default to normal weight (400) if the value is not recognized
@@ -250,7 +254,9 @@ class CSSHelper {
         const decorationReference = (0, TokenHelper_1.sureOptionalReference)(typography.textDecoration.referencedTokenId, allTokens, options.allowReferences);
         const caseReference = (0, TokenHelper_1.sureOptionalReference)(typography.textCase.referencedTokenId, allTokens, options.allowReferences);
         const data = {
-            fontFamily: fontFamilyReference ? options.tokenToVariableRef(fontFamilyReference) : typography.fontFamily.text,
+            fontFamily: fontFamilyReference
+                ? options.tokenToVariableRef(fontFamilyReference)
+                : typography.fontFamily.text,
             fontWeight: fontWeightReference
                 ? options.tokenToVariableRef(fontWeightReference)
                 : this.normalizeTextWeight(typography.fontWeight.text),
@@ -268,82 +274,87 @@ class CSSHelper {
             fontSize: this.dimensionTokenValueToCSS(typography.fontSize, allTokens, options),
             lineHeight: typography.lineHeight
                 ? this.dimensionTokenValueToCSS(typography.lineHeight, allTokens, options)
-                : undefined
+                : undefined,
         };
         // Formal CSS definition: font-style, font-variant, font-weight, font-stretch, font-size, line-height, and font-family.
         // Example: small-caps bold 24px/1rem "Wingdings"
-        const fragmentCaps = data.caps ? 'small-caps ' : '';
+        const fragmentCaps = data.caps ? "small-caps " : "";
         const fragmentWeight = data.fontWeight;
         const fragmentSize = data.fontSize;
         const fragmentLineHeight = data.lineHeight;
-        const fragmentSizeAndLineHeight = data.lineHeight ? `${fragmentSize}/${fragmentLineHeight}` : fragmentSize;
-        const fragmentFamily = fontFamilyReference ? data.fontFamily : `\"${data.fontFamily}\"`;
-        return `${fragmentCaps}${fragmentWeight} ${fragmentSizeAndLineHeight} ${fragmentFamily}`;
+        const fragmentSizeAndLineHeight = data.lineHeight
+            ? `${fragmentSize}/${fragmentLineHeight}`
+            : fragmentSize;
+        const fragmentFamily = fontFamilyReference
+            ? data.fontFamily
+            : `\"${data.fontFamily}\"`;
+        // return `${fragmentCaps}${fragmentWeight} ${fragmentSizeAndLineHeight} ${fragmentFamily}`
+        return data;
     }
     static borderStyleToCSS(borderStyle) {
         switch (borderStyle) {
             case sdk_exporters_1.BorderStyle.dashed:
-                return 'dashed';
+                return "dashed";
             case sdk_exporters_1.BorderStyle.dotted:
-                return 'dotted';
+                return "dotted";
             case sdk_exporters_1.BorderStyle.solid:
-                return 'solid';
+                return "solid";
             case sdk_exporters_1.BorderStyle.groove:
-                return 'groove';
+                return "groove";
             default:
-                return 'solid';
+                return "solid";
         }
     }
     static borderPositionToCSS(borderPosition) {
         switch (borderPosition) {
             case sdk_exporters_1.BorderPosition.center:
-                return 'center';
+                return "center";
             case sdk_exporters_1.BorderPosition.inside:
-                return 'inside';
+                return "inside";
             case sdk_exporters_1.BorderPosition.outside:
-                return 'outside';
+                return "outside";
             default:
-                return 'outside';
+                return "outside";
         }
     }
     static unitToCSS(unit) {
         switch (unit) {
             case sdk_exporters_1.Unit.percent:
-                return '%';
+                return "%";
             case sdk_exporters_1.Unit.pixels:
-                return 'px';
+                return "px";
             case sdk_exporters_1.Unit.rem:
-                return 'rem';
+                return "rem";
             case sdk_exporters_1.Unit.raw:
-                return '';
+                return "";
             case sdk_exporters_1.Unit.ms:
-                return 'ms';
+                return "ms";
             default:
-                return 'px';
+                return "px";
         }
     }
     static textCaseToCSS(textCase) {
         switch (textCase) {
             case sdk_exporters_1.TextCase.original:
-                return 'none';
+                return "none";
             case sdk_exporters_1.TextCase.upper:
-                return 'uppercase';
+                return "uppercase";
             case sdk_exporters_1.TextCase.lower:
-                return 'lowercase';
+                return "lowercase";
             case sdk_exporters_1.TextCase.camel:
-                return 'capitalize';
+                return "capitalize";
             case sdk_exporters_1.TextCase.smallCaps:
-                return 'small-caps';
+                return "small-caps";
         }
     }
     static textDecorationToCSS(textDecoration) {
         switch (textDecoration) {
             case sdk_exporters_1.TextDecoration.original:
-                return 'none';
+                return "none";
             case sdk_exporters_1.TextDecoration.underline:
-                return 'underline';
+                return "underline";
             case sdk_exporters_1.TextDecoration.strikethrough:
-                return 'line-through';
+                return "line-through";
         }
     }
 }

@@ -1,6 +1,6 @@
-import { BorderPosition, BorderStyle, TextCase, TextDecoration, Token, TokenType, Unit } from '@supernovaio/sdk-exporters';
-import { AnyDimensionTokenValue, AnyOptionTokenValue, AnyStringTokenValue, BlurTokenValue, BorderTokenValue, ColorTokenValue, GradientTokenValue, ShadowTokenValue, TypographyTokenValue } from '@supernovaio/sdk-exporters';
-import { ColorFormat } from '../enums/ColorFormat';
+import { BorderPosition, BorderStyle, TextCase, TextDecoration, Token, TokenType, Unit } from "@supernovaio/sdk-exporters";
+import { AnyDimensionTokenValue, AnyOptionTokenValue, AnyStringTokenValue, BlurTokenValue, BorderTokenValue, ColorTokenValue, GradientTokenValue, ShadowTokenValue, TypographyTokenValue } from "@supernovaio/sdk-exporters";
+import { ColorFormat } from "../enums/ColorFormat";
 export type TokenToCSSOptions = {
     /** Whether to allow references to other tokens */
     allowReferences: boolean;
@@ -17,7 +17,7 @@ export type TokenToCSSOptions = {
 };
 /** A utility class to help with transformation of tokens and Supernova token-like values to various formats */
 export declare class CSSHelper {
-    static tokenToCSS(token: Pick<Token, 'tokenType'>, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
+    static tokenToCSS(token: Pick<Token, "tokenType">, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
     static colorTokenValueToCSS(color: ColorTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
     static borderTokenValueToCSS(border: BorderTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
     static gradientTokenValueToCSS(gradients: Array<GradientTokenValue>, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
@@ -31,7 +31,7 @@ export declare class CSSHelper {
     static stringTokenValueToCSS(value: AnyStringTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
     static optionTokenValueToCSS(option: AnyOptionTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions, tokenType: TokenType): string;
     static blurTokenValueToCSS(blur: BlurTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
-    static typographyTokenValueToCSS(typography: TypographyTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
+    static typographyTokenValueToCSS(typography: TypographyTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): any;
     static borderStyleToCSS(borderStyle: BorderStyle): string;
     static borderPositionToCSS(borderPosition: BorderPosition): string;
     static unitToCSS(unit: Unit): string;
