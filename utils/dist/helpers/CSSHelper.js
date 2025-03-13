@@ -288,8 +288,7 @@ class CSSHelper {
         const fragmentFamily = fontFamilyReference
             ? data.fontFamily
             : `\"${data.fontFamily}\"`;
-        // return `${fragmentCaps}${fragmentWeight} ${fragmentSizeAndLineHeight} ${fragmentFamily}`
-        return data;
+        return `${fragmentCaps}${fragmentWeight} ${fragmentSizeAndLineHeight} ${fragmentFamily}`;
     }
     static borderStyleToCSS(borderStyle) {
         switch (borderStyle) {

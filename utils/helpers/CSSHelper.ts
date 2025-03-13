@@ -468,7 +468,7 @@ export class CSSHelper {
     typography: TypographyTokenValue,
     allTokens: Map<string, Token>,
     options: TokenToCSSOptions
-  ): any {
+  ): string {
     // Reference full typography token if set
     const reference = sureOptionalReference(
       typography.referencedTokenId,
@@ -548,8 +548,7 @@ export class CSSHelper {
       ? data.fontFamily
       : `\"${data.fontFamily}\"`;
 
-    // return `${fragmentCaps}${fragmentWeight} ${fragmentSizeAndLineHeight} ${fragmentFamily}`
-    return data;
+    return `${fragmentCaps}${fragmentWeight} ${fragmentSizeAndLineHeight} ${fragmentFamily}`;
   }
 
   static borderStyleToCSS(borderStyle: BorderStyle): string {

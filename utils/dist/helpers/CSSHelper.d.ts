@@ -31,7 +31,7 @@ export declare class CSSHelper {
     static stringTokenValueToCSS(value: AnyStringTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
     static optionTokenValueToCSS(option: AnyOptionTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions, tokenType: TokenType): string;
     static blurTokenValueToCSS(blur: BlurTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
-    static typographyTokenValueToCSS(typography: TypographyTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): any;
+    static typographyTokenValueToCSS(typography: TypographyTokenValue, allTokens: Map<string, Token>, options: TokenToCSSOptions): string;
     static borderStyleToCSS(borderStyle: BorderStyle): string;
     static borderPositionToCSS(borderPosition: BorderPosition): string;
     static unitToCSS(unit: Unit): string;
