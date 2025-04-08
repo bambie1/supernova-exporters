@@ -9,6 +9,7 @@ import {
 } from "@supernovaio/sdk-exporters";
 import { ExporterConfiguration, ThemeExportStyle } from "../config";
 import { styleOutputFile } from "./files/style-file";
+import { collectionOutputFile } from "./files/collection-file";
 import { StringCase, ThemeHelper } from "@supernovaio/export-utils";
 import { deepMerge } from "./utils/token-hierarchy";
 
@@ -57,6 +58,8 @@ Pulsar.export(
       remoteVersionIdentifier
     );
 
+    console.log("collections", tokenCollections);
+
     // Filter by brand if specified
     if (context.brandId) {
       const brands = await sdk.brands.getBrands(remoteVersionIdentifier);
@@ -90,9 +93,9 @@ Pulsar.export(
       // Process themes based on the selected export style
       switch (exportConfiguration.exportThemesAs) {
         case ThemeExportStyle.NestedThemes:
-          // Generate one file per token type with all themes nested inside each token
+          // Generate one file per collection with all themes nested inside each token
           // Example output at root level:
-          // ├── color.json
+          // ├── core.json
           // │   {
           // │     "primary": {
           // │       "base": { "value": "#000000" },
@@ -101,13 +104,13 @@ Pulsar.export(
           // │       "description": "Primary color"
           // │     }
           // │   }
-          // ├── typography.json
+          // ├── semantic-grid.json
           // └── ...
-          const valueObjectFiles = Object.values(TokenType).map((type) => {
+          const valueObjectFiles = tokenCollections.map((collection) => {
             // First, create a file with base values if enabled
             const baseFile = exportConfiguration.exportBaseValues
-              ? styleOutputFile(
-                  type,
+              ? collectionOutputFile(
+                  collection,
                   tokens,
                   tokenGroups,
                   "",
@@ -127,8 +130,8 @@ Pulsar.export(
               const originalExportBaseValues =
                 exportConfiguration.exportBaseValues;
               exportConfiguration.exportBaseValues = false;
-              const file = styleOutputFile(
-                type,
+              const file = collectionOutputFile(
+                collection,
                 themedTokens,
                 tokenGroups,
                 "",
@@ -164,17 +167,17 @@ Pulsar.export(
           return processOutputFiles(valueObjectFiles);
 
         case ThemeExportStyle.SeparateFiles:
-          // Generate separate files for each theme and token type
+          // Generate separate files for each theme and collection
           // Creates a directory structure like:
           // base/
-          //   ├── color.json
-          //   └── typography.json
+          //   ├── core.json
+          //   └── semantic-grid.json
           // light/
-          //   ├── color.json
-          //   └── typography.json
+          //   ├── core.json
+          //   └── semantic-grid.json
           // dark/
-          //   ├── color.json
-          //   └── typography.json
+          //   ├── core.json
+          //   └── semantic-grid.json
           const themeFiles = themesToApply.flatMap((theme) => {
             const themedTokens = sdk.tokens.computeTokensByApplyingThemes(
               tokens,
@@ -195,9 +198,9 @@ Pulsar.export(
               theme,
               StringCase.camelCase
             );
-            return Object.values(TokenType).map((type) =>
-              styleOutputFile(
-                type,
+            return tokenCollections.map((collection) =>
+              collectionOutputFile(
+                collection,
                 expandedThemedTokens,
                 tokenGroups,
                 themePath,
@@ -208,9 +211,9 @@ Pulsar.export(
           });
 
           const baseFiles = exportConfiguration.exportBaseValues
-            ? Object.values(TokenType).map((type) =>
-                styleOutputFile(
-                  type,
+            ? tokenCollections.map((collection) =>
+                collectionOutputFile(
+                  collection,
                   tokens,
                   tokenGroups,
                   "",
@@ -223,19 +226,19 @@ Pulsar.export(
           return processOutputFiles([...baseFiles, ...themeFiles]);
 
         case ThemeExportStyle.MergedTheme:
-          // Generate one file per token type with all themes applied together
+          // Generate one file per collection with all themes applied together
           // Useful when themes should be merged in a specific order
           // Creates a directory structure like:
           // base/              (if exportBaseValues is true)
-          //   ├── color.json
-          //   └── typography.json
+          //   ├── core.json
+          //   └── semantic-grid.json
           // themed/
-          //   ├── color.json   (contains values after applying all themes)
-          //   └── typography.json
+          //   ├── core.json   (contains values after applying all themes)
+          //   └── semantic-grid.json
           const baseTokenFiles = exportConfiguration.exportBaseValues
-            ? Object.values(TokenType).map((type) =>
-                styleOutputFile(
-                  type,
+            ? tokenCollections.map((collection) =>
+                collectionOutputFile(
+                  collection,
                   tokens,
                   tokenGroups,
                   "",
@@ -250,9 +253,9 @@ Pulsar.export(
             tokens,
             themesToApply
           );
-          const mergedThemeFiles = Object.values(TokenType).map((type) =>
-            styleOutputFile(
-              type,
+          const mergedThemeFiles = tokenCollections.map((collection) =>
+            collectionOutputFile(
+              collection,
               themedTokens,
               tokenGroups,
               "themed",
@@ -267,8 +270,8 @@ Pulsar.export(
         case ThemeExportStyle.ApplyDirectly:
           // Apply theme values directly to tokens, replacing base values
           // Generates one set of files at root level:
-          // ├── color.json     (contains themed values)
-          // ├── typography.json
+          // ├── core.json     (contains themed values)
+          // ├── semantic-grid.json
           // └── ...
           tokens = sdk.tokens.computeTokensByApplyingThemes(
             tokens,
@@ -281,9 +284,9 @@ Pulsar.export(
 
     // Default case: Generate files without themes
     const defaultFiles = exportConfiguration.exportBaseValues
-      ? Object.values(TokenType).map((type) =>
-          styleOutputFile(
-            type,
+      ? tokenCollections.map((collection) =>
+          collectionOutputFile(
+            collection,
             tokens,
             tokenGroups,
             "",

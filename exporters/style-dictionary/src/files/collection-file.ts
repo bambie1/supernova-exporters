@@ -1,0 +1,239 @@
+import {
+  FileHelper,
+  CSSHelper,
+  ThemeHelper,
+  FileNameHelper,
+  StringCase,
+  NamingHelper,
+} from "@supernovaio/export-utils";
+import {
+  OutputTextFile,
+  Token,
+  TokenGroup,
+  TokenTheme,
+} from "@supernovaio/sdk-exporters";
+import { DesignSystemCollection } from "@supernovaio/sdk-exporters/build/sdk-typescript/src/model/base/SDKDesignSystemCollection";
+import { exportConfiguration } from "..";
+import {
+  tokenObjectKeyName,
+  resetTokenNameTracking,
+  getTokenPrefix,
+} from "../content/token";
+import {
+  createHierarchicalStructure,
+  deepMerge,
+  processTokenName,
+} from "../utils/token-hierarchy";
+import { ThemeExportStyle, TokenNameStructure } from "../../config";
+
+/**
+ * Creates a value object for a token, either as a simple value or themed values
+ */
+function createTokenValue(
+  value: string,
+  token: Token,
+  theme?: TokenTheme,
+  collections?: Array<DesignSystemCollection>
+): any {
+  const baseValue = value.replace(/['"]/g, "");
+  const description =
+    token.description && exportConfiguration.showDescriptions
+      ? { description: token.description.trim() }
+      : {};
+
+  // Get the token type, forcing a return value even when prefixes are disabled
+  const tokenType = getTokenPrefix(token.tokenType, true);
+
+  // Default case - return simple value object with type
+  return {
+    value: baseValue,
+    type: tokenType,
+    collection: collections?.find((c) => c.persistentId === token.collectionId)
+      ?.name,
+    ...description,
+  };
+}
+
+/**
+ * Generates a style file based on collection instead of token type
+ *
+ * @param collection - The collection to generate file for
+ * @param tokens - Array of all tokens
+ * @param tokenGroups - Array of token groups for name generation
+ * @param themePath - Path for themed tokens (empty for base tokens)
+ * @param theme - Theme configuration when generating themed tokens
+ * @param collections - Array of design system collections
+ * @returns OutputTextFile with the generated content or null if no tokens exist
+ */
+export function collectionOutputFile(
+  collection: DesignSystemCollection,
+  tokens: Array<Token>,
+  tokenGroups: Array<TokenGroup>,
+  themePath: string = "",
+  theme?: TokenTheme,
+  collections: Array<DesignSystemCollection> = []
+): OutputTextFile | null {
+  // Clear any previously cached token names to ensure clean generation
+  resetTokenNameTracking();
+
+  // Skip generating base token files unless:
+  // - Base values are explicitly enabled via exportBaseValues, or
+  // - We're generating themed files (themePath is present), or
+  // - We're using nested themes format (which needs to generate files even without base values
+  //   since it combines all theme values into a single file structure)
+  if (
+    !exportConfiguration.exportBaseValues &&
+    !themePath &&
+    exportConfiguration.exportThemesAs !== ThemeExportStyle.NestedThemes
+  ) {
+    return null;
+  }
+
+  // Filter to only include tokens of the specified collection
+  let tokensOfCollection = tokens.filter(
+    (token) => token.collectionId === collection.persistentId
+  );
+
+  // For themed token files:
+  // - Filter to only include tokens that are overridden in this theme
+  // - Skip generating the file if no tokens are themed (when configured)
+  if (themePath && theme && exportConfiguration.exportOnlyThemedTokens) {
+    tokensOfCollection = ThemeHelper.filterThemedTokens(
+      tokensOfCollection,
+      theme
+    );
+
+    if (tokensOfCollection.length === 0) {
+      return null;
+    }
+  }
+
+  // Skip generating empty files unless explicitly configured to do so
+  if (
+    !exportConfiguration.generateEmptyFiles &&
+    tokensOfCollection.length === 0
+  ) {
+    return null;
+  }
+
+  // Create a lookup map for quick token reference resolution
+  const mappedTokens = new Map(tokens.map((token) => [token.id, token]));
+
+  // Sort tokens if configured
+  let sortedTokens = [...tokensOfCollection];
+  if (exportConfiguration.tokenSortOrder === "alphabetical") {
+    sortedTokens.sort((a, b) => {
+      const nameA = tokenObjectKeyName(a, tokenGroups, true, collections);
+      const nameB = tokenObjectKeyName(b, tokenGroups, true, collections);
+      return nameA.localeCompare(nameB);
+    });
+  }
+
+  // Generate the JSON structure
+  const tokenObject: any = {};
+
+  // Add disclaimer as _comment if enabled
+  if (exportConfiguration.showGeneratedFileDisclaimer) {
+    tokenObject._comment = exportConfiguration.disclaimer;
+  }
+
+  sortedTokens.forEach((token) => {
+    const name = tokenObjectKeyName(token, tokenGroups, true, collections);
+    const value = CSSHelper.tokenToCSS(token, mappedTokens, {
+      allowReferences: exportConfiguration.useReferences,
+      decimals: exportConfiguration.colorPrecision,
+      colorFormat: exportConfiguration.colorFormat,
+      forceRemUnit: exportConfiguration.forceRemUnit,
+      remBase: exportConfiguration.remBase,
+      tokenToVariableRef: (t) => {
+        // Build the full reference path
+        const prefix = getTokenPrefix(t.tokenType);
+
+        // Get path segments and include them based on structure type
+        const pathSegments = (t.tokenPath || [])
+          .filter((segment) => segment && segment.trim().length > 0)
+          .map((segment) =>
+            NamingHelper.codeSafeVariableName(
+              segment,
+              exportConfiguration.tokenNameStyle
+            )
+          );
+
+        // Process the token name
+        const tokenName = processTokenName(t, pathSegments);
+
+        // Combine all segments based on structure type
+        let segments: string[] = [];
+        if (prefix) {
+          segments.push(prefix);
+        }
+
+        switch (exportConfiguration.tokenNameStructure) {
+          case TokenNameStructure.NameOnly:
+            segments.push(tokenName);
+            break;
+
+          case TokenNameStructure.CollectionPathAndName:
+            if (t.collectionId) {
+              const collection = collections.find(
+                (c) => c.persistentId === t.collectionId
+              );
+              if (collection) {
+                const collectionSegment = NamingHelper.codeSafeVariableName(
+                  collection.name,
+                  exportConfiguration.tokenNameStyle
+                );
+                segments.push(collectionSegment);
+              }
+            }
+            segments.push(...pathSegments, tokenName);
+            break;
+
+          case TokenNameStructure.PathAndName:
+            segments.push(...pathSegments, tokenName);
+            break;
+        }
+
+        // Add global prefix if configured
+        if (exportConfiguration.globalNamePrefix) {
+          segments.unshift(
+            NamingHelper.codeSafeVariableName(
+              exportConfiguration.globalNamePrefix,
+              exportConfiguration.tokenNameStyle
+            )
+          );
+        }
+
+        return `{${segments.join(".")}}`;
+      },
+    });
+
+    // Create hierarchical structure using the tracked name
+    const hierarchicalObject = createHierarchicalStructure(
+      token.tokenPath || [],
+      token.name,
+      createTokenValue(value, token, theme, collections),
+      token,
+      collections
+    );
+
+    Object.assign(tokenObject, deepMerge(tokenObject, hierarchicalObject));
+  });
+
+  // Generate the final JSON content
+  const content = JSON.stringify(tokenObject, null, exportConfiguration.indent);
+
+  // Convert collection name to file-friendly format
+  const fileName = FileNameHelper.ensureFileExtension(
+    NamingHelper.codeSafeVariableName(collection.name, StringCase.kebabCase),
+    ".json"
+  );
+
+  return FileHelper.createTextFile({
+    relativePath: themePath
+      ? `./${themePath}`
+      : exportConfiguration.baseStyleFilePath,
+    fileName: fileName,
+    content: content,
+  });
+}
