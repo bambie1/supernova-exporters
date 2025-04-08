@@ -126,13 +126,23 @@ Pulsar.export(
                 tokens,
                 [theme]
               );
+
+              const expandedThemedTokens = themedTokens.map(
+                (token) =>
+                  ({
+                    ...token,
+                    collectionId: tokens.find((t) => t.id === token.id)
+                      ?.collectionId,
+                  }) as Token
+              );
+
               // Pass false for exportBaseValues to prevent including base values in theme files
               const originalExportBaseValues =
                 exportConfiguration.exportBaseValues;
               exportConfiguration.exportBaseValues = false;
               const file = collectionOutputFile(
                 collection,
-                themedTokens,
+                expandedThemedTokens,
                 tokenGroups,
                 "",
                 theme,
