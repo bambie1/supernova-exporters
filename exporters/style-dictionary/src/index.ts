@@ -104,18 +104,6 @@ Pulsar.export(
           // ├── typography.json
           // └── ...
           const valueObjectFiles = Object.values(TokenType).map((type) => {
-            // First, create a file with base values if enabled
-            const baseFile = exportConfiguration.exportBaseValues
-              ? styleOutputFile(
-                  type,
-                  tokens,
-                  tokenGroups,
-                  "",
-                  undefined,
-                  tokenCollections
-                )
-              : null;
-
             // Then create files for each theme
             const themeFiles = themesToApply.map((theme) => {
               const themedTokens = sdk.tokens.computeTokensByApplyingThemes(
@@ -140,7 +128,7 @@ Pulsar.export(
             });
 
             // Merge all files, starting with the base file
-            return [baseFile, ...themeFiles].reduce((merged, file) => {
+            return themeFiles.reduce((merged, file) => {
               if (!file) return merged;
               if (!merged) return file;
 
@@ -207,75 +195,7 @@ Pulsar.export(
             );
           });
 
-          const baseFiles = exportConfiguration.exportBaseValues
-            ? Object.values(TokenType).map((type) =>
-                styleOutputFile(
-                  type,
-                  tokens,
-                  tokenGroups,
-                  "",
-                  undefined,
-                  tokenCollections
-                )
-              )
-            : [];
-
-          return processOutputFiles([...baseFiles, ...themeFiles]);
-
-        case ThemeExportStyle.MergedTheme:
-          // Generate one file per token type with all themes applied together
-          // Useful when themes should be merged in a specific order
-          // Creates a directory structure like:
-          // base/              (if exportBaseValues is true)
-          //   ├── color.json
-          //   └── typography.json
-          // themed/
-          //   ├── color.json   (contains values after applying all themes)
-          //   └── typography.json
-          const baseTokenFiles = exportConfiguration.exportBaseValues
-            ? Object.values(TokenType).map((type) =>
-                styleOutputFile(
-                  type,
-                  tokens,
-                  tokenGroups,
-                  "",
-                  undefined,
-                  tokenCollections
-                )
-              )
-            : [];
-
-          const themedTokens = sdk.tokens.computeTokensByApplyingThemes(
-            tokens,
-            tokens,
-            themesToApply
-          );
-          const mergedThemeFiles = Object.values(TokenType).map((type) =>
-            styleOutputFile(
-              type,
-              themedTokens,
-              tokenGroups,
-              "themed",
-              themesToApply[0],
-              tokenCollections
-            )
-          );
-
-          const mergedFiles = [...baseTokenFiles, ...mergedThemeFiles];
-          return processOutputFiles(mergedFiles);
-
-        case ThemeExportStyle.ApplyDirectly:
-          // Apply theme values directly to tokens, replacing base values
-          // Generates one set of files at root level:
-          // ├── color.json     (contains themed values)
-          // ├── typography.json
-          // └── ...
-          tokens = sdk.tokens.computeTokensByApplyingThemes(
-            tokens,
-            tokens,
-            themesToApply
-          );
-          break;
+          return processOutputFiles(themeFiles);
       }
     }
 

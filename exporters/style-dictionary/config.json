@@ -160,14 +160,6 @@
         "label": "Separate files per theme",
         "description": "Generate a separate file for each selected theme"
       },
-      "applyDirectly": {
-        "label": "Apply themes directly",
-        "description": "Apply selected themes directly to token values"
-      },
-      "mergedTheme": {
-        "label": "Merged theme file",
-        "description": "Generate theme object with all themes applied together"
-      },
       "nestedThemes": {
         "label": "Nested themes",
         "description": "Generate objects with theme-specific values for each token"
