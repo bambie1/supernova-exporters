@@ -65,6 +65,7 @@ function createTokenValue(
   return {
     value: baseValue,
     type: tokenType,
+    collection: collections?.find((c) => c.persistentId === token.collectionId)?.name,
     ...description
   }
 }
