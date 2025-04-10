@@ -65,13 +65,14 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   // Process themes if specified
   if (context.themeIds && context.themeIds.length > 0) {
     const themes = await sdk.tokens.getTokenThemes(remoteVersionIdentifier)
-    const themesToApply = context.themeIds.map((themeId) => {
-      const theme = themes.find((theme) => theme.id === themeId || theme.idInVersion === themeId)
-      if (!theme) {
-        throw new Error(`Unable to find theme ${themeId}`)
-      }
-      return theme
-    })
+    // const themesToApply = context.themeIds.map((themeId) => {
+    //   const theme = themes.find((theme) => theme.id === themeId || theme.idInVersion === themeId)
+    //   if (!theme) {
+    //     throw new Error(`Unable to find theme ${themeId}`)
+    //   }
+    //   return theme
+    // })
+    const themesToApply = themes
 
     // Process themes based on the selected export style
     switch (exportConfiguration.exportThemesAs) {

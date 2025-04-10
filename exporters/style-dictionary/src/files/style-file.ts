@@ -276,7 +276,7 @@ export function styleOutputFile(
 
   // Determine the path based on token type
   // If token type is in themedTokenTypes, use "/brands/brand/theme", otherwise use "/brands/brand/primitives"
-  const basePath = `./brands/${brand || "default"}`
+  const basePath = `./brands/${brand?.toLowerCase() || "default"}`
   const relativePath = themedTokenTypes.includes(type) ? `${basePath}/${theme?.name}` : `${basePath}/primitives`
 
   // Create and return the output file with appropriate path and name
