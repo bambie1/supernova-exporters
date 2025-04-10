@@ -49,14 +49,15 @@ function createTokenValue(
     if (theme) {
       valueObject[ThemeHelper.getThemeIdentifier(theme, StringCase.kebabCase)] = {
         value: baseValue,
-        type: tokenType,
-        collection: collections?.find((c) => c.persistentId === token.collectionId)?.name || "no collection"
+        type: tokenType
       }
     }
 
     // Add description last
     return {
       ...valueObject,
+      collection: "No collection",
+      oldcollection: collections?.find((c) => c.persistentId === token.collectionId)?.name || "no collection",
       ...description
     }
   }
@@ -65,7 +66,8 @@ function createTokenValue(
   return {
     value: baseValue,
     type: tokenType,
-    collection: collections?.find((c) => c.persistentId === token.collectionId)?.name || "no collection",
+    collection: "No collection",
+    oldcollection: collections?.find((c) => c.persistentId === token.collectionId)?.name || "no collection",
     ...description
   }
 }
