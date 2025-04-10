@@ -102,25 +102,21 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     const themePath = ThemeHelper.getThemeIdentifier(theme, StringCase.camelCase)
 
     // Only include themed token types (color, opacity, shadow)
-    return themedTokenTypes.map((type) => {
-      // Use SeparateFiles approach for themed tokens
-      const originalExportStyle = exportConfiguration.exportThemesAs
-      exportConfiguration.exportThemesAs = ThemeExportStyle.SeparateFiles
+    // Filter tokens to only include themed types before processing
+    const themedTokensOnly = expandedThemedTokens.filter((token) => themedTokenTypes.includes(token.tokenType))
 
-      const file = styleOutputFile(
-        type,
-        expandedThemedTokens,
-        tokenGroups,
-        themePath,
-        theme,
-        tokenCollections,
-        brandName
-      )
+    // Use SeparateFiles approach for themed tokens
+    const originalExportStyle = exportConfiguration.exportThemesAs
+    exportConfiguration.exportThemesAs = ThemeExportStyle.SeparateFiles
 
-      // Restore original config
-      exportConfiguration.exportThemesAs = originalExportStyle
-      return file
-    })
+    // Process once per theme, but only for themed token types
+    const files = themedTokenTypes.map((type) =>
+      styleOutputFile(type, themedTokensOnly, tokenGroups, themePath, theme, tokenCollections, brandName)
+    )
+
+    // Restore original config
+    exportConfiguration.exportThemesAs = originalExportStyle
+    return files
   })
 
   // PART 2: Handle primitive tokens with NestedThemes style
@@ -133,8 +129,11 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     // We can process all themes in one go with NestedThemes
     const allThemedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, themesToApply)
 
+    // Filter to only include tokens of the current primitive type
+    const tokensOfType = allThemedTokens.filter((token) => token.tokenType === type)
+
     // For primitives, we don't pass a theme path
-    const file = styleOutputFile(type, allThemedTokens, tokenGroups, "", undefined, tokenCollections, brandName)
+    const file = styleOutputFile(type, tokensOfType, tokenGroups, "", undefined, tokenCollections, brandName)
 
     // Restore original config
     exportConfiguration.exportThemesAs = originalExportStyle
