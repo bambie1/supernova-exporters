@@ -49,14 +49,14 @@ function createTokenValue(
     if (theme) {
       valueObject[ThemeHelper.getThemeIdentifier(theme, StringCase.kebabCase)] = {
         value: baseValue,
-        type: tokenType
+        type: tokenType,
+        collection: collections?.find((c) => c.persistentId === token.collectionId)?.name
       }
     }
 
     // Add description last
     return {
       ...valueObject,
-      collection: collections?.find((c) => c.persistentId === token.collectionId)?.name,
       ...description
     }
   }
