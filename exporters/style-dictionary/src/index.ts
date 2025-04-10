@@ -63,20 +63,25 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   }
 
   // Process themes if specified
-  if (context.themeIds && context.themeIds.length > 0) {
-    const themes = await sdk.tokens.getTokenThemes(remoteVersionIdentifier)
-    // const themesToApply = context.themeIds.map((themeId) => {
-    //   const theme = themes.find((theme) => theme.id === themeId || theme.idInVersion === themeId)
-    //   if (!theme) {
-    //     throw new Error(`Unable to find theme ${themeId}`)
-    //   }
-    //   return theme
-    // })
-    const themesToApply = themes
+  const themes = await sdk.tokens.getTokenThemes(remoteVersionIdentifier)
 
-    // Process themes based on the selected export style
-    switch (exportConfiguration.exportThemesAs) {
-      case ThemeExportStyle.NestedThemes:
+  // Use selected themes if specified, otherwise use all available themes
+  const themesToApply =
+    context.themeIds && context.themeIds.length > 0
+      ? context.themeIds.map((themeId) => {
+          const theme = themes.find((theme) => theme.id === themeId || theme.idInVersion === themeId)
+          if (!theme) {
+            throw new Error(`Unable to find theme ${themeId}`)
+          }
+          return theme
+        })
+      : themes
+
+  // Process themes based on the selected export style
+  switch (exportConfiguration.exportThemesAs) {
+    case ThemeExportStyle.NestedThemes:
+      // Only process themes if there are any to apply
+      if (themesToApply.length > 0) {
         // Generate one file per token type with all themes nested inside each token
         // Example output at root level:
         // ├── color.json
@@ -135,8 +140,11 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
           }, null)
         })
         return processOutputFiles(valueObjectFiles)
+      }
+      break
 
-      case ThemeExportStyle.SeparateFiles:
+    case ThemeExportStyle.SeparateFiles:
+      if (themesToApply.length > 0) {
         if (exportConfiguration.fileStructure === FileStructure.SingleFile) {
           // Generate one combined file per theme
           const themeFiles = themesToApply.map((theme) => {
@@ -185,8 +193,11 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
           : []
 
         return processOutputFiles([...baseFiles, ...themeFiles])
+      }
+      break
 
-      case ThemeExportStyle.MergedTheme:
+    case ThemeExportStyle.MergedTheme:
+      if (themesToApply.length > 0) {
         if (exportConfiguration.fileStructure === FileStructure.SingleFile) {
           const baseFile = exportConfiguration.exportBaseValues
             ? combinedStyleOutputFile(tokens, tokenGroups, "", undefined, tokenCollections)
@@ -225,19 +236,22 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
         const mergedFiles = [...baseTokenFiles, ...mergedThemeFiles]
         return processOutputFiles(mergedFiles)
+      }
+      break
 
-      case ThemeExportStyle.ApplyDirectly:
+    case ThemeExportStyle.ApplyDirectly:
+      if (themesToApply.length > 0) {
         // Apply theme values directly to tokens, replacing base values
         // Generates one set of files at root level:
         // ├── color.json     (contains themed values)
         // ├── typography.json
         // └── ...
         tokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, themesToApply)
-        break
-    }
+      }
+      break
   }
 
-  // Default case: Generate files without themes
+  // Default case: Generate files without themes or after applying themes directly
   if (exportConfiguration.fileStructure === FileStructure.SingleFile) {
     const defaultFile = exportConfiguration.exportBaseValues
       ? combinedStyleOutputFile(tokens, tokenGroups, "", undefined, tokenCollections)
