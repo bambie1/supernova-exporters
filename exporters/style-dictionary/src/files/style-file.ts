@@ -33,8 +33,20 @@ function createTokenValue(
   // Get the token type, forcing a return value even when prefixes are disabled
   const tokenType = getTokenPrefix(token.tokenType, true)
 
-  // For nested themes style, create an object with theme-specific values
-  if (exportConfiguration.exportThemesAs === ThemeExportStyle.NestedThemes) {
+  // For primitive tokens, use NestedThemes style
+  // For themed tokens (color, opacity, shadow), use SeparateFiles style
+  if (themedTokenTypes.includes(token.tokenType)) {
+    // For themed tokens (color, opacity, shadow) using SeparateFiles
+    // Just return a simple value
+    return {
+      value: baseValue,
+      type: tokenType,
+      collection: collections?.find((c) => c.persistentId === token.collectionId)?.name,
+      ...description
+    }
+  } else {
+    // For primitive tokens using NestedThemes style
+    // Create an object with theme-specific values
     const valueObject = {}
 
     // Include base value only when processing base tokens (no theme)
@@ -60,14 +72,6 @@ function createTokenValue(
       ...valueObject,
       ...description
     }
-  }
-
-  // Default case - return simple value object with type
-  return {
-    value: baseValue,
-    type: tokenType,
-    collection: collections?.find((c) => c.persistentId === token.collectionId)?.name,
-    ...description
   }
 }
 
@@ -275,9 +279,17 @@ export function styleOutputFile(
   const content = JSON.stringify(tokenObject, null, exportConfiguration.indent)
 
   // Determine the path based on token type
-  // If token type is in themedTokenTypes, use "/brands/brand/theme", otherwise use "/brands/brand/primitives"
   const basePath = `./brands/${brand?.toLowerCase() || "default"}`
-  const relativePath = themedTokenTypes.includes(type) ? `${basePath}/${theme?.name}` : `${basePath}/primitives`
+
+  // If token type is in themedTokenTypes (color, opacity, shadow), use ThemeExportStyle.SeparateFiles
+  // Otherwise (for primitives), use ThemeExportStyle.NestedThemes
+  // For themed tokens (color, opacity, shadow): brands/brandName/themeName/type.json
+  // For primitive tokens: brands/brandName/primitives/type.json
+  const relativePath = themedTokenTypes.includes(type)
+    ? themePath
+      ? `${basePath}/${themePath}`
+      : `${basePath}/base`
+    : `${basePath}/primitives`
 
   // Create and return the output file with appropriate path and name
   return FileHelper.createTextFile({

@@ -77,193 +77,70 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
         })
       : themes
 
-  // Process themes based on the selected export style
-  switch (exportConfiguration.exportThemesAs) {
-    case ThemeExportStyle.NestedThemes:
-      // Only process themes if there are any to apply
-      if (themesToApply.length > 0) {
-        // Generate one file per token type with all themes nested inside each token
-        // Example output at root level:
-        // ├── color.json
-        // │   {
-        // │     "primary": {
-        // │       "base": { "value": "#000000" },
-        // │       "theme-light": { "value": "#FFFFFF" },
-        // │       "theme-dark": { "value": "#333333" },
-        // │       "description": "Primary color"
-        // │     }
-        // │   }
-        // ├── typography.json
-        // └── ...
-        const valueObjectFiles = Object.values(TokenType).map((type) => {
-          // Then create files for each theme
-          const themeFiles = themesToApply.map((theme) => {
-            const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, [theme])
-
-            const expandedThemedTokens = themedTokens.map(
-              (token) =>
-                ({
-                  ...token,
-                  collectionId: tokens.find((t) => t.id === token.id)?.collectionId
-                }) as Token
-            )
-
-            // Pass false for exportBaseValues to prevent including base values in theme files
-            const originalExportBaseValues = exportConfiguration.exportBaseValues
-            exportConfiguration.exportBaseValues = false
-            const file = styleOutputFile(
-              type,
-              expandedThemedTokens,
-              tokenGroups,
-              "",
-              theme,
-              tokenCollections,
-              brandName
-            )
-            exportConfiguration.exportBaseValues = originalExportBaseValues
-            return file
-          })
-
-          // Merge all files, starting with the base file
-          return themeFiles.reduce((merged, file) => {
-            if (!file) return merged
-            if (!merged) return file
-
-            // Merge the content
-            const mergedContent = deepMerge(JSON.parse(merged.content), JSON.parse(file.content))
-
-            // Return a new file with merged content
-            return {
-              ...file,
-              content: JSON.stringify(mergedContent, null, exportConfiguration.indent)
-            }
-          }, null)
-        })
-        return processOutputFiles(valueObjectFiles)
-      }
-      break
-
-    case ThemeExportStyle.SeparateFiles:
-      if (themesToApply.length > 0) {
-        if (exportConfiguration.fileStructure === FileStructure.SingleFile) {
-          // Generate one combined file per theme
-          const themeFiles = themesToApply.map((theme) => {
-            const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, [theme])
-
-            const expandedThemedTokens = themedTokens.map(
-              (token) =>
-                ({
-                  ...token,
-                  collectionId: tokens.find((t) => t.id === token.id)?.collectionId
-                }) as Token
-            )
-            const themePath = ThemeHelper.getThemeIdentifier(theme, StringCase.camelCase)
-            return combinedStyleOutputFile(expandedThemedTokens, tokenGroups, themePath, theme, tokenCollections)
-          })
-
-          const baseFile = exportConfiguration.exportBaseValues
-            ? combinedStyleOutputFile(tokens, tokenGroups, "", undefined, tokenCollections)
-            : null
-
-          return processOutputFiles([baseFile, ...themeFiles])
-        }
-        // Generate separate files for each theme and token type
-        // Creates a directory structure like:
-        // base/
-        //   ├── color.json
-        //   └── typography.json
-        // light/
-        //   ├── color.json
-        //   └── typography.json
-        // dark/
-        //   ├── color.json
-        //   └── typography.json
-        const themeFiles = themesToApply.flatMap((theme) => {
-          const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, [theme])
-          const themePath = ThemeHelper.getThemeIdentifier(theme, StringCase.camelCase)
-          return Object.values(TokenType).map((type) =>
-            styleOutputFile(type, themedTokens, tokenGroups, themePath, theme, tokenCollections, brandName)
-          )
-        })
-
-        const baseFiles = exportConfiguration.exportBaseValues
-          ? Object.values(TokenType).map((type) =>
-              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, brandName)
-            )
-          : []
-
-        return processOutputFiles([...baseFiles, ...themeFiles])
-      }
-      break
-
-    case ThemeExportStyle.MergedTheme:
-      if (themesToApply.length > 0) {
-        if (exportConfiguration.fileStructure === FileStructure.SingleFile) {
-          const baseFile = exportConfiguration.exportBaseValues
-            ? combinedStyleOutputFile(tokens, tokenGroups, "", undefined, tokenCollections)
-            : null
-
-          const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, themesToApply)
-          const mergedThemeFile = combinedStyleOutputFile(
-            themedTokens,
-            tokenGroups,
-            "themed",
-            themesToApply[0],
-            tokenCollections
-          )
-
-          return processOutputFiles([baseFile, mergedThemeFile])
-        }
-        // Generate one file per token type with all themes applied together
-        // Useful when themes should be merged in a specific order
-        // Creates a directory structure like:
-        // base/              (if exportBaseValues is true)
-        //   ├── color.json
-        //   └── typography.json
-        // themed/
-        //   ├── color.json   (contains values after applying all themes)
-        //   └── typography.json
-        const baseTokenFiles = exportConfiguration.exportBaseValues
-          ? Object.values(TokenType).map((type) =>
-              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, brandName)
-            )
-          : []
-
-        const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, themesToApply)
-        const mergedThemeFiles = Object.values(TokenType).map((type) =>
-          styleOutputFile(type, themedTokens, tokenGroups, "themed", themesToApply[0], tokenCollections, brandName)
-        )
-
-        const mergedFiles = [...baseTokenFiles, ...mergedThemeFiles]
-        return processOutputFiles(mergedFiles)
-      }
-      break
-
-    case ThemeExportStyle.ApplyDirectly:
-      if (themesToApply.length > 0) {
-        // Apply theme values directly to tokens, replacing base values
-        // Generates one set of files at root level:
-        // ├── color.json     (contains themed values)
-        // ├── typography.json
-        // └── ...
-        tokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, themesToApply)
-      }
-      break
+  if (!themesToApply.length) {
+    return []
   }
 
-  // Default case: Generate files without themes or after applying themes directly
-  if (exportConfiguration.fileStructure === FileStructure.SingleFile) {
-    const defaultFile = exportConfiguration.exportBaseValues
-      ? combinedStyleOutputFile(tokens, tokenGroups, "", undefined, tokenCollections)
-      : null
-    return processOutputFiles([defaultFile])
-  }
+  // Define which token types are themed (color, opacity, shadow)
+  const themedTokenTypes = [TokenType.color, TokenType.opacity, TokenType.shadow]
 
-  const defaultFiles = exportConfiguration.exportBaseValues
-    ? Object.values(TokenType).map((type) =>
-        styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, brandName)
+  // Define which token types are primitives (everything else)
+  const primitiveTokenTypes = Object.values(TokenType).filter((type) => !themedTokenTypes.includes(type))
+
+  // PART 1: Handle themed tokens with SeparateFiles style
+  // Generate separate files for themed token types using ThemeExportStyle.SeparateFiles
+  const themedFiles = themesToApply.flatMap((theme) => {
+    const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, [theme])
+    const expandedThemedTokens = themedTokens.map(
+      (token) =>
+        ({
+          ...token,
+          collectionId: tokens.find((t) => t.id === token.id)?.collectionId
+        }) as Token
+    )
+
+    const themePath = ThemeHelper.getThemeIdentifier(theme, StringCase.camelCase)
+
+    // Only include themed token types (color, opacity, shadow)
+    return themedTokenTypes.map((type) => {
+      // Use SeparateFiles approach for themed tokens
+      const originalExportStyle = exportConfiguration.exportThemesAs
+      exportConfiguration.exportThemesAs = ThemeExportStyle.SeparateFiles
+
+      const file = styleOutputFile(
+        type,
+        expandedThemedTokens,
+        tokenGroups,
+        themePath,
+        theme,
+        tokenCollections,
+        brandName
       )
-    : []
 
-  return processOutputFiles(defaultFiles)
+      // Restore original config
+      exportConfiguration.exportThemesAs = originalExportStyle
+      return file
+    })
+  })
+
+  // PART 2: Handle primitive tokens with NestedThemes style
+  // For primitives, we'll use the NestedThemes style
+  const primitiveFiles = primitiveTokenTypes.map((type) => {
+    // Use NestedThemes approach for primitive tokens
+    const originalExportStyle = exportConfiguration.exportThemesAs
+    exportConfiguration.exportThemesAs = ThemeExportStyle.NestedThemes
+
+    // We can process all themes in one go with NestedThemes
+    const allThemedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, themesToApply)
+
+    // For primitives, we don't pass a theme path
+    const file = styleOutputFile(type, allThemedTokens, tokenGroups, "", undefined, tokenCollections, brandName)
+
+    // Restore original config
+    exportConfiguration.exportThemesAs = originalExportStyle
+    return file
+  })
+
+  // Combine both themed and primitive files
+  return processOutputFiles([...themedFiles, ...primitiveFiles])
 })
