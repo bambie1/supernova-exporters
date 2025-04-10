@@ -4,7 +4,8 @@ import {
   RemoteVersionIdentifier,
   AnyOutputFile,
   TokenType,
-  TokenTheme
+  TokenTheme,
+  Token
 } from "@supernovaio/sdk-exporters"
 import { ExporterConfiguration, ThemeExportStyle, FileStructure } from "../config"
 import { styleOutputFile, combinedStyleOutputFile } from "./files/style-file"
@@ -91,10 +92,19 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
           // Then create files for each theme
           const themeFiles = themesToApply.map((theme) => {
             const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, [theme])
+
+            const expandedThemedTokens = themedTokens.map(
+              (token) =>
+                ({
+                  ...token,
+                  collectionId: tokens.find((t) => t.id === token.id)?.collectionId
+                }) as Token
+            )
+
             // Pass false for exportBaseValues to prevent including base values in theme files
             const originalExportBaseValues = exportConfiguration.exportBaseValues
             exportConfiguration.exportBaseValues = false
-            const file = styleOutputFile(type, themedTokens, tokenGroups, "", theme, tokenCollections)
+            const file = styleOutputFile(type, expandedThemedTokens, tokenGroups, "", theme, tokenCollections)
             exportConfiguration.exportBaseValues = originalExportBaseValues
             return file
           })
@@ -121,8 +131,16 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
           // Generate one combined file per theme
           const themeFiles = themesToApply.map((theme) => {
             const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, [theme])
+
+            const expandedThemedTokens = themedTokens.map(
+              (token) =>
+                ({
+                  ...token,
+                  collectionId: tokens.find((t) => t.id === token.id)?.collectionId
+                }) as Token
+            )
             const themePath = ThemeHelper.getThemeIdentifier(theme, StringCase.camelCase)
-            return combinedStyleOutputFile(themedTokens, tokenGroups, themePath, theme, tokenCollections)
+            return combinedStyleOutputFile(expandedThemedTokens, tokenGroups, themePath, theme, tokenCollections)
           })
 
           const baseFile = exportConfiguration.exportBaseValues
