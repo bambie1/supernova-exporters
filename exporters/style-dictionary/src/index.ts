@@ -104,7 +104,15 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
             // Pass false for exportBaseValues to prevent including base values in theme files
             const originalExportBaseValues = exportConfiguration.exportBaseValues
             exportConfiguration.exportBaseValues = false
-            const file = styleOutputFile(type, expandedThemedTokens, tokenGroups, "", theme, tokenCollections)
+            const file = styleOutputFile(
+              type,
+              expandedThemedTokens,
+              tokenGroups,
+              "",
+              theme,
+              tokenCollections,
+              context.brandId
+            )
             exportConfiguration.exportBaseValues = originalExportBaseValues
             return file
           })
@@ -164,13 +172,13 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
           const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, [theme])
           const themePath = ThemeHelper.getThemeIdentifier(theme, StringCase.camelCase)
           return Object.values(TokenType).map((type) =>
-            styleOutputFile(type, themedTokens, tokenGroups, themePath, theme, tokenCollections)
+            styleOutputFile(type, themedTokens, tokenGroups, themePath, theme, tokenCollections, context.brandId)
           )
         })
 
         const baseFiles = exportConfiguration.exportBaseValues
           ? Object.values(TokenType).map((type) =>
-              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections)
+              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, context.brandId)
             )
           : []
 
@@ -204,13 +212,21 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
         //   └── typography.json
         const baseTokenFiles = exportConfiguration.exportBaseValues
           ? Object.values(TokenType).map((type) =>
-              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections)
+              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, context.brandId)
             )
           : []
 
         const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, themesToApply)
         const mergedThemeFiles = Object.values(TokenType).map((type) =>
-          styleOutputFile(type, themedTokens, tokenGroups, "themed", themesToApply[0], tokenCollections)
+          styleOutputFile(
+            type,
+            themedTokens,
+            tokenGroups,
+            "themed",
+            themesToApply[0],
+            tokenCollections,
+            context.brandId
+          )
         )
 
         const mergedFiles = [...baseTokenFiles, ...mergedThemeFiles]

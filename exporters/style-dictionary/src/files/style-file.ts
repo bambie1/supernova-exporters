@@ -234,7 +234,8 @@ export function styleOutputFile(
   tokenGroups: Array<TokenGroup>,
   themePath: string = "",
   theme?: TokenTheme,
-  collections: Array<DesignSystemCollection> = []
+  collections: Array<DesignSystemCollection> = [],
+  brand: string | null = null
 ): OutputTextFile | null {
   // Skip generating base token files unless:
   // - Base values are explicitly enabled via exportBaseValues, or
@@ -274,7 +275,7 @@ export function styleOutputFile(
 
   // Create and return the output file with appropriate path and name
   return FileHelper.createTextFile({
-    relativePath: themePath ? `./${themePath}` : exportConfiguration.baseStyleFilePath,
+    relativePath: `./brands/${brand || "default"}`,
     fileName: exportConfiguration.customizeStyleFileNames
       ? FileNameHelper.ensureFileExtension(exportConfiguration.styleFileNames[type], ".json")
       : DEFAULT_STYLE_FILE_NAMES[type],
