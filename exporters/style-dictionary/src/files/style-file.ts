@@ -50,7 +50,7 @@ function createTokenValue(
       valueObject[ThemeHelper.getThemeIdentifier(theme, StringCase.kebabCase)] = {
         value: baseValue,
         type: tokenType,
-        collection: collections?.find((c) => c.persistentId === token.collectionId)
+        collection: collections?.find((c) => c.persistentId === token.collectionId)?.name
       }
     }
 
@@ -65,7 +65,7 @@ function createTokenValue(
   return {
     value: baseValue,
     type: tokenType,
-    collection: collections?.find((c) => c.persistentId === token.collectionId),
+    collection: collections?.find((c) => c.persistentId === token.collectionId)?.name,
     ...description
   }
 }
