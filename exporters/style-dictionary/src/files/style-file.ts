@@ -34,7 +34,7 @@ function createTokenValue(
 
   // For nested themes style, create an object with theme-specific values
   if (exportConfiguration.exportThemesAs === ThemeExportStyle.NestedThemes) {
-    const valueObject = { collection: "No collection" }
+    const valueObject = {}
 
     // Include base value only when processing base tokens (no theme)
     // This ensures base values only come from the base file
@@ -56,8 +56,7 @@ function createTokenValue(
     // Add description last
     return {
       ...valueObject,
-      collection: "No collection",
-      oldcollection: collections?.find((c) => c.persistentId === token.collectionId)?.name || "no collection",
+      collection: collections?.find((c) => c.persistentId === token.collectionId)?.name,
       ...description
     }
   }
@@ -66,8 +65,7 @@ function createTokenValue(
   return {
     value: baseValue,
     type: tokenType,
-    collection: "No collection",
-    oldcollection: collections?.find((c) => c.persistentId === token.collectionId)?.name || "no collection",
+    collection: collections?.find((c) => c.persistentId === token.collectionId)?.name,
     ...description
   }
 }
