@@ -274,14 +274,9 @@ export function styleOutputFile(
   // Generate the final JSON content with proper indentation
   const content = JSON.stringify(tokenObject, null, exportConfiguration.indent)
 
-  // Determine the path based on token type
-  // If token type is in themedTokenTypes, use "/brands/brand/theme", otherwise use "/brands/brand/primitives"
-  const basePath = `./brands/${brand?.toLowerCase() || "default"}`
-  const relativePath = themedTokenTypes.includes(type) ? `${basePath}/${theme?.name}` : `${basePath}/primitives`
-
   // Create and return the output file with appropriate path and name
   return FileHelper.createTextFile({
-    relativePath: relativePath,
+    relativePath: themePath ? `./${themePath}` : exportConfiguration.baseStyleFilePath,
     fileName: exportConfiguration.customizeStyleFileNames
       ? FileNameHelper.ensureFileExtension(exportConfiguration.styleFileNames[type], ".json")
       : DEFAULT_STYLE_FILE_NAMES[type],
