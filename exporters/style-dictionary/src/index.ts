@@ -48,6 +48,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   let tokens = await sdk.tokens.getTokens(remoteVersionIdentifier)
   let tokenGroups = await sdk.tokens.getTokenGroups(remoteVersionIdentifier)
   let tokenCollections = await sdk.tokens.getTokenCollections(remoteVersionIdentifier)
+  let brandName: string | null = null
 
   // Filter by brand if specified
   if (context.brandId) {
@@ -56,7 +57,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     if (!brand) {
       throw new Error(`Unable to find brand ${context.brandId}.`)
     }
-
+    brandName = brand.name
     tokens = tokens.filter((token) => token.brandId === brand.id)
     tokenGroups = tokenGroups.filter((tokenGroup) => tokenGroup.brandId === brand.id)
   }
@@ -111,7 +112,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
               "",
               theme,
               tokenCollections,
-              context.brandId
+              brandName
             )
             exportConfiguration.exportBaseValues = originalExportBaseValues
             return file
@@ -172,13 +173,13 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
           const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, [theme])
           const themePath = ThemeHelper.getThemeIdentifier(theme, StringCase.camelCase)
           return Object.values(TokenType).map((type) =>
-            styleOutputFile(type, themedTokens, tokenGroups, themePath, theme, tokenCollections, context.brandId)
+            styleOutputFile(type, themedTokens, tokenGroups, themePath, theme, tokenCollections, brandName)
           )
         })
 
         const baseFiles = exportConfiguration.exportBaseValues
           ? Object.values(TokenType).map((type) =>
-              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, context.brandId)
+              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, brandName)
             )
           : []
 
@@ -212,21 +213,13 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
         //   └── typography.json
         const baseTokenFiles = exportConfiguration.exportBaseValues
           ? Object.values(TokenType).map((type) =>
-              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, context.brandId)
+              styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, brandName)
             )
           : []
 
         const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, themesToApply)
         const mergedThemeFiles = Object.values(TokenType).map((type) =>
-          styleOutputFile(
-            type,
-            themedTokens,
-            tokenGroups,
-            "themed",
-            themesToApply[0],
-            tokenCollections,
-            context.brandId
-          )
+          styleOutputFile(type, themedTokens, tokenGroups, "themed", themesToApply[0], tokenCollections, brandName)
         )
 
         const mergedFiles = [...baseTokenFiles, ...mergedThemeFiles]
@@ -253,7 +246,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
   const defaultFiles = exportConfiguration.exportBaseValues
     ? Object.values(TokenType).map((type) =>
-        styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections)
+        styleOutputFile(type, tokens, tokenGroups, "", undefined, tokenCollections, brandName)
       )
     : []
 

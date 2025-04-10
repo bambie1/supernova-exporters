@@ -16,6 +16,7 @@ import { createHierarchicalStructure, deepMerge, processTokenName } from "../uti
 import { NamingHelper } from "@supernovaio/export-utils"
 import { ThemeExportStyle, TokenNameStructure } from "../../config"
 
+const themedTokenTypes = [TokenType.color, TokenType.opacity, TokenType.shadow]
 /**
  * Creates a value object for a token, either as a simple value or themed values
  */
@@ -273,9 +274,14 @@ export function styleOutputFile(
   // Generate the final JSON content with proper indentation
   const content = JSON.stringify(tokenObject, null, exportConfiguration.indent)
 
+  // Determine the path based on token type
+  // If token type is in themedTokenTypes, use "/brands/brand/theme", otherwise use "/brands/brand/primitives"
+  const basePath = `./brands/${brand || "default"}`
+  const relativePath = themedTokenTypes.includes(type) ? `${basePath}/${theme?.name}` : `${basePath}/primitives`
+
   // Create and return the output file with appropriate path and name
   return FileHelper.createTextFile({
-    relativePath: `./brands/${brand || "default"}`,
+    relativePath: relativePath,
     fileName: exportConfiguration.customizeStyleFileNames
       ? FileNameHelper.ensureFileExtension(exportConfiguration.styleFileNames[type], ".json")
       : DEFAULT_STYLE_FILE_NAMES[type],
