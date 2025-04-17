@@ -69,8 +69,11 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
       tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "semanticTheme"
   )
 
+  console.log({ semanticThemeTokens: semanticThemeTokens.length })
+
   const semanticThemeFiles = semanticThemesToApply.map((theme) => {
     const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, semanticThemeTokens, [theme])
+    console.log({ themedTokens: themedTokens.length })
     const themePath = ThemeHelper.getThemeIdentifier(theme, StringCase.camelCase)
     return combinedStyleOutputFile(themedTokens, tokenGroups, themePath, theme, tokenCollections)
   })
