@@ -119,9 +119,16 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
       tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "semanticTheme"
   )
 
-  const componentWebTokens = tokens.filter(
+  const componentWebColorTokens = tokens.filter(
     (token) =>
-      tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "componentWeb"
+      tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "componentWeb" &&
+      token.tokenType === TokenType.color
+  )
+
+  const componentWebNonColorTokens = tokens.filter(
+    (token) =>
+      tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "componentWeb" &&
+      token.tokenType !== TokenType.color
   )
 
   const semanticTypeTokens = tokens.filter(
@@ -151,8 +158,8 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     )
   })
 
-  const componentWebFiles = semanticThemesToApply.map((theme) => {
-    const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, componentWebTokens, [theme])
+  const componentWebColorFiles = semanticThemesToApply.map((theme) => {
+    const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, componentWebColorTokens, [theme])
     return combinedStyleOutputFileWithCollection(
       themedTokens,
       tokenGroups,
@@ -162,6 +169,10 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
       theme.codeName
     )
   })
+
+  const componentWebNonColorFiles = semanticThemesToApply.flatMap((semanticTheme) =>
+    generateNestedFile(semanticTheme, componentWebNonColorTokens, "componentWeb")
+  )
 
   const semanticTypeFiles = semanticThemesToApply.map((theme) => {
     const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, semanticTypeTokens, [theme])
@@ -193,7 +204,8 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
   return processOutputFiles([
     ...semanticThemeFiles,
-    ...componentWebFiles,
+    ...componentWebColorFiles,
+    ...componentWebNonColorFiles,
     ...semanticTypeFiles,
     ...semanticBrandFiles,
     ...semanticGridFiles
