@@ -421,8 +421,6 @@ export function combinedStyleOutputFileWithCollection(
   const fileName = themePath ? `tokens.${themePath}.json` : "tokens.json"
   const relativePath = "./" // Put files directly in root folder
 
-  console.log({ fileName })
-
   // Create and return the output file
   return FileHelper.createTextFile({
     relativePath: relativePath,
