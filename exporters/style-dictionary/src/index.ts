@@ -137,18 +137,10 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   const semanticTypeTokens = getTokensByCollection("semanticType")
   const semanticBrandTokens = getTokensByCollection("semanticBrand")
   const semanticGridTokens = getTokensByCollection("semanticGrid")
+  const componentWebTokens = getTokensByCollection("componentWeb")
 
-  const componentWebColorTokens = tokens.filter(
-    (token) =>
-      tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "componentWeb" &&
-      token.tokenType === TokenType.color
-  )
-
-  const componentWebNonColorTokens = tokens.filter(
-    (token) =>
-      tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "componentWeb" &&
-      token.tokenType !== TokenType.color
-  )
+  const componentWebColorTokens = componentWebTokens.filter(({ tokenType }) => tokenType === TokenType.color)
+  const componentWebNonColorTokens = componentWebTokens.filter(({ tokenType }) => tokenType !== TokenType.color)
 
   const semanticThemeFiles = semanticThemesToApply.map((theme) =>
     generateNormalFile(theme, semanticThemeTokens, "semanticTheme")
