@@ -126,6 +126,10 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
       console.log({ themedTokens: themedTokens[0] })
 
+      // temporarily set export as to nested themes for the semantic grid
+      const originalExportAs = exportConfiguration.exportThemesAs
+      exportConfiguration.exportThemesAs = ThemeExportStyle.NestedThemes
+
       // Generate the themed version of all tokens
       const file = combinedStyleOutputFileWithCollection(
         themedTokens,
@@ -134,6 +138,9 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
         semanticTheme,
         tokenCollections
       )
+
+      // restore the original export as
+      exportConfiguration.exportThemesAs = originalExportAs
 
       return file
     })
