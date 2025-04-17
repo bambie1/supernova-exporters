@@ -403,36 +403,14 @@ export function combinedStyleOutputFileWithCollection(
   theme?: TokenTheme,
   collections: Array<DesignSystemCollection> = []
 ): OutputTextFile | null {
-  // Skip generating base token files unless:
-  // - Base values are explicitly enabled via exportBaseValues, or
-  // - We're generating themed files (themePath is present), or
-  // - We're using nested themes format
-  if (
-    !exportConfiguration.exportBaseValues &&
-    !themePath &&
-    exportConfiguration.exportThemesAs !== ThemeExportStyle.NestedThemes
-  ) {
-    return null
-  }
-
   // Store original tokens for reference resolution
   const originalTokens = [...tokens]
-
-  // For themed token files:
-  // - Filter to only include tokens that are overridden in this theme
-  // - Skip generating the file if no tokens are themed (when configured)
-  if (themePath && theme && exportConfiguration.exportOnlyThemedTokens) {
-    tokens = ThemeHelper.filterThemedTokens(tokens, theme)
-
-    if (tokens.length === 0) {
-      return null
-    }
-  }
 
   // Process all tokens into a single structured object
   // Pass the original tokens array for reference resolution
   const tokenObject = processTokensToObject(tokens, tokenGroups, theme, collections, originalTokens)
   if (!tokenObject) {
+    console.log("No token object generated")
     return null
   }
 
@@ -442,6 +420,8 @@ export function combinedStyleOutputFileWithCollection(
   // For single file mode, themed files go directly in root with theme-based names
   const fileName = themePath ? `tokens.${themePath}.json` : "tokens.json"
   const relativePath = "./" // Put files directly in root folder
+
+  console.log({ fileName })
 
   // Create and return the output file
   return FileHelper.createTextFile({
