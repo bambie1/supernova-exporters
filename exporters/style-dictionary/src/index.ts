@@ -65,6 +65,9 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   const semanticThemesToApply = themes.filter(
     (theme) => (theme.codeName === "light" || theme.codeName === "dark") && theme.brandId === context.brandId
   )
+  const gridThemesToApply = themes.filter(
+    (theme) => theme.codeName === "desktop" || (theme.codeName === "mobile" && theme.brandId === context.brandId)
+  )
 
   const semanticThemeTokens = tokens.filter(
     (token) =>
@@ -84,6 +87,11 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   const semanticBrandTokens = tokens.filter(
     (token) =>
       tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "semanticBrand"
+  )
+
+  const semanticGridTokens = tokens.filter(
+    (token) =>
+      tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "semanticGrid"
   )
 
   const semanticThemeFiles = semanticThemesToApply.map((theme) => {
@@ -106,7 +114,58 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     return combinedStyleOutputFileWithCollection(themedTokens, tokenGroups, "semanticBrand", theme, tokenCollections)
   })
 
-  return processOutputFiles([...semanticThemeFiles, ...componentWebFiles, ...semanticTypeFiles, ...semanticBrandFiles])
+  const semanticGridFiles = semanticThemesToApply.flatMap((semanticTheme) => {
+    const themeFiles = gridThemesToApply.map((gridTheme) => {
+      // Apply the current theme to all tokens
+      const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, semanticGridTokens, [
+        semanticTheme,
+        gridTheme
+      ])
+
+      // Temporarily disable base value export to prevent duplicates in themed output
+      const originalExportBaseValues = exportConfiguration.exportBaseValues
+      exportConfiguration.exportBaseValues = false
+
+      // Generate the themed version of all tokens
+      const file = combinedStyleOutputFileWithCollection(
+        themedTokens,
+        tokenGroups,
+        "semanticGrid",
+        semanticTheme,
+        tokenCollections
+      )
+
+      // Restore the original base value export setting
+      exportConfiguration.exportBaseValues = originalExportBaseValues
+      return file
+    })
+
+    // Step 3: Merge all generated files (base + themed) into a single output
+    // The merge preserves the nested structure while combining base and themed values
+    const mergedFile = themeFiles.reduce((merged, file) => {
+      if (!file) return merged
+      if (!merged) return file
+
+      // Deep merge preserves the nested structure and combines theme variations
+      const mergedContent = deepMerge(JSON.parse(merged.content), JSON.parse(file.content))
+
+      // Return a new file with merged content
+      return {
+        ...file,
+        content: JSON.stringify(mergedContent, null, exportConfiguration.indent)
+      }
+    }, null)
+
+    return [mergedFile]
+  })
+
+  return processOutputFiles([
+    ...semanticThemeFiles,
+    ...componentWebFiles,
+    ...semanticTypeFiles,
+    ...semanticBrandFiles,
+    ...semanticGridFiles
+  ])
 
   // Process themes if specified
   if (context.themeIds && context.themeIds.length > 0) {
