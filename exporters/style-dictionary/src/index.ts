@@ -60,10 +60,17 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     tokenGroups = tokenGroups.filter((tokenGroup) => tokenGroup.brandId === brand.id)
   }
 
-  tokens.map((token) => {
-    if (token.tokenType === TokenType.fontFamily) {
-      console.log({ token })
-    }
+  const colorTokens = tokens.filter(
+    (token) => token.tokenType == TokenType.color && token.collectionId !== "827a115f-3a22-4f29-ad04-f77b12bb8cec"
+  )
+  const gridTokens = tokens.filter(
+    (token) => token.tokenType == TokenType.space && token.collectionId !== "827a115f-3a22-4f29-ad04-f77b12bb8cec"
+  )
+  colorTokens.splice(0, 1).map((token) => {
+    console.log({ token })
+  })
+  gridTokens.splice(0, 1).map((token) => {
+    console.log({ token })
   })
 
   // Process themes if specified
