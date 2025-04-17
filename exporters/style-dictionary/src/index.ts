@@ -64,14 +64,16 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     const collection = tokenCollections.find((collection) => collection.persistentId === token.collectionId)
 
     if (!collection) {
-      console.log(`Unable to find collection ${token.collectionId} for token ${token.id}`)
+      console.log(`Unable to find collection ${token.collectionId} for token ${token.tokenPath?.join(".")}`)
       return
     } else {
-      console.log(`Collection ${collection.name} found for token ${token.id}`)
+      console.log(`Collection ${collection.name} found for token ${token.tokenPath?.join(".")}`)
     }
 
     switch (collection.name) {
       case "semanticTheme":
+        console.log(`Processing semanticTheme collection for token ${token.tokenPath?.join(".")}`)
+
         const themes = await sdk.tokens.getTokenThemes(remoteVersionIdentifier)
         // themesToApply: light and dark
         const themesToApply = themes.filter((theme) => theme.name === "light" || theme.name === "dark")
