@@ -283,48 +283,6 @@ export function styleOutputFile(
 }
 
 /**
- * Generates the content of the exported token object.
- * This object provides a type-safe way to access token values through their generated names.
- *
- * Features:
- * - Maintains token grouping structure
- * - Includes token descriptions as JSDoc comments
- * - Supports alphabetical sorting when configured
- * - Properly indents according to configuration
- *
- * @param tokens - Array of tokens to include in the object
- * @param tokenGroups - Array of token groups for maintaining hierarchy
- * @returns Formatted string containing the object's properties
- */
-function generateTokenObject(tokens: Array<Token>, tokenGroups: Array<TokenGroup>): string {
-  const indentString = GeneralHelper.indent(exportConfiguration.indent)
-
-  // Create a copy of tokens array for sorting
-  let sortedTokens = [...tokens]
-
-  // Sort tokens alphabetically if configured
-  // This can make it easier to find tokens in the generated files
-  if (exportConfiguration.tokenSortOrder === "alphabetical") {
-    sortedTokens.sort((a, b) => {
-      const nameA = tokenObjectKeyName(a, tokenGroups, true)
-      const nameB = tokenObjectKeyName(b, tokenGroups, true)
-      return nameA.localeCompare(nameB)
-    })
-  }
-
-  // Generate the object properties, including descriptions as JSDoc comments
-  return sortedTokens
-    .map((token) => {
-      const name = tokenObjectKeyName(token, tokenGroups, true)
-      if (token.description) {
-        return `${indentString}/** ${token.description.trim()} */\n${indentString}${name},`
-      }
-      return `${indentString}${name},`
-    })
-    .join("\n")
-}
-
-/**
  * Generates a single combined JSON file containing all token types.
  * This function is used when fileStructure is set to 'singleFile'.
  *
