@@ -98,22 +98,50 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
   const semanticThemeFiles = semanticThemesToApply.map((theme) => {
     const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, semanticThemeTokens, [theme])
-    return combinedStyleOutputFileWithCollection(themedTokens, tokenGroups, "semanticTheme", theme, tokenCollections)
+    return combinedStyleOutputFileWithCollection(
+      themedTokens,
+      tokenGroups,
+      "semanticTheme",
+      theme,
+      tokenCollections,
+      theme.codeName
+    )
   })
 
   const componentWebFiles = semanticThemesToApply.map((theme) => {
     const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, componentWebTokens, [theme])
-    return combinedStyleOutputFileWithCollection(themedTokens, tokenGroups, "componentWeb", theme, tokenCollections)
+    return combinedStyleOutputFileWithCollection(
+      themedTokens,
+      tokenGroups,
+      "componentWeb",
+      theme,
+      tokenCollections,
+      theme.codeName
+    )
   })
 
   const semanticTypeFiles = semanticThemesToApply.map((theme) => {
     const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, semanticTypeTokens, [theme])
-    return combinedStyleOutputFileWithCollection(themedTokens, tokenGroups, "semanticType", theme, tokenCollections)
+    return combinedStyleOutputFileWithCollection(
+      themedTokens,
+      tokenGroups,
+      "semanticType",
+      theme,
+      tokenCollections,
+      theme.codeName
+    )
   })
 
   const semanticBrandFiles = semanticThemesToApply.map((theme) => {
     const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, semanticBrandTokens, [theme])
-    return combinedStyleOutputFileWithCollection(themedTokens, tokenGroups, "semanticBrand", theme, tokenCollections)
+    return combinedStyleOutputFileWithCollection(
+      themedTokens,
+      tokenGroups,
+      "semanticBrand",
+      theme,
+      tokenCollections,
+      theme.codeName
+    )
   })
 
   const semanticGridFiles = semanticThemesToApply.flatMap((semanticTheme) => {
@@ -135,8 +163,9 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
         themedTokens,
         tokenGroups,
         "semanticGrid",
-        semanticTheme,
-        tokenCollections
+        gridTheme,
+        tokenCollections,
+        semanticTheme.codeName
       )
 
       // restore the original export as

@@ -408,7 +408,8 @@ export function combinedStyleOutputFileWithCollection(
   tokenGroups: Array<TokenGroup>,
   collectionName: string,
   theme: TokenTheme,
-  tokenCollections: Array<DesignSystemCollection> = []
+  tokenCollections: Array<DesignSystemCollection> = [],
+  filePath: string
 ): OutputTextFile | null {
   // Store original tokens for reference resolution
   const originalTokens = [...tokens]
@@ -426,7 +427,7 @@ export function combinedStyleOutputFileWithCollection(
 
   // For single file mode, themed files go directly in root with theme-based names
   const fileName = `${collectionName}.json`
-  const relativePath = `./${theme.codeName}` // Put files directly in root folder
+  const relativePath = `./${filePath}` // Put files directly in root folder
 
   // Create and return the output file
   return FileHelper.createTextFile({
