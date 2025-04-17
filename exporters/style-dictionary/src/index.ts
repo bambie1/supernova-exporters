@@ -61,7 +61,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   }
 
   tokens.map(async (token) => {
-    const collection = tokenCollections.find((collection) => collection.id === token.collectionId)
+    const collection = tokenCollections.find((collection) => collection.persistentId === token.collectionId)
 
     if (!collection) {
       console.log(`Unable to find collection ${token.collectionId} for token ${token.id}`)
