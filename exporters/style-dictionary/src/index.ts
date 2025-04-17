@@ -163,7 +163,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     return combinedStyleOutputFileWithCollection(
       themedTokens,
       tokenGroups,
-      "componentWeb",
+      "componentWeb-color", // needs to be unique to avoid conflicts with componentWeb non-color tokens
       theme,
       tokenCollections,
       theme.codeName
