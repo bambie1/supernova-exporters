@@ -65,8 +65,8 @@ function createTokenValue(
   return {
     value: baseValue,
     type: tokenType,
-    ...description,
-    collection: collections?.find((c) => c.persistentId === token.collectionId)?.name
+    collection: collections?.find((c) => c.persistentId === token.collectionId)?.name,
+    ...description
   }
 }
 
@@ -408,14 +408,14 @@ export function combinedStyleOutputFileWithCollection(
   tokenGroups: Array<TokenGroup>,
   collectionName: string,
   theme: TokenTheme,
-  allCollections: Array<DesignSystemCollection> = []
+  tokenCollections: Array<DesignSystemCollection> = []
 ): OutputTextFile | null {
   // Store original tokens for reference resolution
   const originalTokens = [...tokens]
 
   // Process all tokens into a single structured object
   // Pass the original tokens array for reference resolution
-  const tokenObject = processTokensToObject(tokens, tokenGroups, theme, allCollections, originalTokens)
+  const tokenObject = processTokensToObject(tokens, tokenGroups, theme, tokenCollections, originalTokens)
   if (!tokenObject) {
     console.log("No token object generated")
     return null
