@@ -4,7 +4,8 @@ import {
   RemoteVersionIdentifier,
   AnyOutputFile,
   TokenType,
-  TokenTheme
+  TokenTheme,
+  Token
 } from "@supernovaio/sdk-exporters"
 import { ExporterConfiguration, ThemeExportStyle, FileStructure } from "../config"
 import { styleOutputFile, combinedStyleOutputFile, combinedStyleOutputFileWithCollection } from "./files/style-file"
@@ -68,8 +69,6 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   const gridThemesToApply = themes.filter(
     (theme) => (theme.codeName === "desktop" || theme.codeName === "mobile") && theme.brandId === context.brandId
   )
-
-  console.log({ gridThemesToApply: gridThemesToApply.map((theme) => theme.codeName) })
 
   const semanticThemeTokens = tokens.filter(
     (token) =>
@@ -144,15 +143,14 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     )
   })
 
-  const semanticGridFiles = semanticThemesToApply.flatMap((semanticTheme) => {
+  const semanticGridFiles = semanticThemesToApply.flatMap((semanticTheme) =>
+    generateNestedFile(semanticTheme, semanticGridTokens, "semanticGrid")
+  )
+
+  const generateNestedFile = (theme: TokenTheme, nicheTokens: Array<Token>, collectionName: string) => {
     const themeFiles = gridThemesToApply.map((gridTheme) => {
       // Apply the current theme to all tokens
-      const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, semanticGridTokens, [
-        semanticTheme,
-        gridTheme
-      ])
-
-      console.log({ themedTokens: themedTokens[0] })
+      const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, nicheTokens, [theme, gridTheme])
 
       // temporarily set export as to nested themes for the semantic grid
       const originalExportAs = exportConfiguration.exportThemesAs
@@ -162,10 +160,10 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
       const file = combinedStyleOutputFileWithCollection(
         themedTokens,
         tokenGroups,
-        "semanticGrid",
+        collectionName,
         gridTheme,
         tokenCollections,
-        semanticTheme.codeName
+        theme.codeName
       )
 
       // restore the original export as
@@ -191,7 +189,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     }, null)
 
     return [mergedFile]
-  })
+  }
 
   return processOutputFiles([
     ...semanticThemeFiles,
