@@ -69,6 +69,8 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     (theme) => theme.codeName === "desktop" || (theme.codeName === "mobile" && theme.brandId === context.brandId)
   )
 
+  console.log({ gridThemesToApply: gridThemesToApply.map((theme) => theme.codeName) })
+
   const semanticThemeTokens = tokens.filter(
     (token) =>
       tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "semanticTheme"
@@ -122,9 +124,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
         gridTheme
       ])
 
-      // Temporarily disable base value export to prevent duplicates in themed output
-      const originalExportBaseValues = exportConfiguration.exportBaseValues
-      exportConfiguration.exportBaseValues = false
+      console.log({ themedTokens: themedTokens[0] })
 
       // Generate the themed version of all tokens
       const file = combinedStyleOutputFileWithCollection(
@@ -135,8 +135,6 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
         tokenCollections
       )
 
-      // Restore the original base value export setting
-      exportConfiguration.exportBaseValues = originalExportBaseValues
       return file
     })
 
