@@ -70,6 +70,50 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     (theme) => (theme.codeName === "desktop" || theme.codeName === "mobile") && theme.brandId === context.brandId
   )
 
+  const generateNestedFile = (theme: TokenTheme, nicheTokens: Array<Token>, collectionName: string) => {
+    const themeFiles = gridThemesToApply.map((gridTheme) => {
+      // Apply the current theme to all tokens
+      const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, nicheTokens, [theme, gridTheme])
+
+      // temporarily set export as to nested themes for the semantic grid
+      const originalExportAs = exportConfiguration.exportThemesAs
+      exportConfiguration.exportThemesAs = ThemeExportStyle.NestedThemes
+
+      // Generate the themed version of all tokens
+      const file = combinedStyleOutputFileWithCollection(
+        themedTokens,
+        tokenGroups,
+        collectionName,
+        gridTheme,
+        tokenCollections,
+        theme.codeName
+      )
+
+      // restore the original export as
+      exportConfiguration.exportThemesAs = originalExportAs
+
+      return file
+    })
+
+    // Step 3: Merge all generated files (base + themed) into a single output
+    // The merge preserves the nested structure while combining base and themed values
+    const mergedFile = themeFiles.reduce((merged, file) => {
+      if (!file) return merged
+      if (!merged) return file
+
+      // Deep merge preserves the nested structure and combines theme variations
+      const mergedContent = deepMerge(JSON.parse(merged.content), JSON.parse(file.content))
+
+      // Return a new file with merged content
+      return {
+        ...file,
+        content: JSON.stringify(mergedContent, null, exportConfiguration.indent)
+      }
+    }, null)
+
+    return [mergedFile]
+  }
+
   const semanticThemeTokens = tokens.filter(
     (token) =>
       tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "semanticTheme"
@@ -146,50 +190,6 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   const semanticGridFiles = semanticThemesToApply.flatMap((semanticTheme) =>
     generateNestedFile(semanticTheme, semanticGridTokens, "semanticGrid")
   )
-
-  const generateNestedFile = (theme: TokenTheme, nicheTokens: Array<Token>, collectionName: string) => {
-    const themeFiles = gridThemesToApply.map((gridTheme) => {
-      // Apply the current theme to all tokens
-      const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, nicheTokens, [theme, gridTheme])
-
-      // temporarily set export as to nested themes for the semantic grid
-      const originalExportAs = exportConfiguration.exportThemesAs
-      exportConfiguration.exportThemesAs = ThemeExportStyle.NestedThemes
-
-      // Generate the themed version of all tokens
-      const file = combinedStyleOutputFileWithCollection(
-        themedTokens,
-        tokenGroups,
-        collectionName,
-        gridTheme,
-        tokenCollections,
-        theme.codeName
-      )
-
-      // restore the original export as
-      exportConfiguration.exportThemesAs = originalExportAs
-
-      return file
-    })
-
-    // Step 3: Merge all generated files (base + themed) into a single output
-    // The merge preserves the nested structure while combining base and themed values
-    const mergedFile = themeFiles.reduce((merged, file) => {
-      if (!file) return merged
-      if (!merged) return file
-
-      // Deep merge preserves the nested structure and combines theme variations
-      const mergedContent = deepMerge(JSON.parse(merged.content), JSON.parse(file.content))
-
-      // Return a new file with merged content
-      return {
-        ...file,
-        content: JSON.stringify(mergedContent, null, exportConfiguration.indent)
-      }
-    }, null)
-
-    return [mergedFile]
-  }
 
   return processOutputFiles([
     ...semanticThemeFiles,
