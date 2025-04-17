@@ -66,9 +66,9 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     if (!collection) {
       console.log(`Unable to find collection ${token.collectionId} for token ${token.id}`)
       return
+    } else {
+      console.log(`Collection ${collection.name} found for token ${token.id}`)
     }
-
-    console.log(`Processing collection ${collection.name} for token ${token.id}`)
 
     switch (collection.name) {
       case "semanticTheme":
@@ -88,6 +88,8 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
           const originalUseReferences = exportConfiguration.useReferences
           exportConfiguration.useReferences = false
 
+          console.log(`Generating themed tokens for theme ${theme.name} with length ${themedTokens.length}`)
+
           // Generate the themed version of all tokens
           const file = combinedStyleOutputFileWithCollection(themedTokens, tokenGroups, "", theme, tokenCollections)
 
@@ -97,6 +99,8 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
           return file
         })
 
+        console.log(`Merging themed tokens with length ${themeFiles.length}`)
+
         // Step 3: Merge all generated files (base + themed) into a single output
         // The merge preserves the nested structure while combining base and themed values
         const mergedFile = themeFiles.reduce((merged, file) => {
@@ -105,6 +109,8 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
           // Deep merge preserves the nested structure and combines theme variations
           const mergedContent = deepMerge(JSON.parse(merged.content), JSON.parse(file.content))
+
+          console.log(`Merged content ${mergedContent}`)
 
           // Return a new file with merged content
           return {
