@@ -60,23 +60,22 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     tokenGroups = tokenGroups.filter((tokenGroup) => tokenGroup.brandId === brand.id)
   }
 
+  const themes = await sdk.tokens.getTokenThemes(remoteVersionIdentifier)
+  console.log({ themes })
+
   tokens.map(async (token) => {
     const collection = tokenCollections.find((collection) => collection.persistentId === token.collectionId)
 
-    if (!collection) {
-      console.log(`Unable to find collection ${token.collectionId} for token ${token.tokenPath?.join(".")}`)
-      return
-    } else {
-      console.log(`Collection ${collection.name} found for token ${token.tokenPath?.join(".")}`)
-    }
+    if (!collection) return
 
     switch (collection.name) {
       case "semanticTheme":
         console.log(`Processing semanticTheme collection for token ${token.tokenPath?.join(".")}`)
 
-        const themes = await sdk.tokens.getTokenThemes(remoteVersionIdentifier)
         // themesToApply: light and dark
         const themesToApply = themes.filter((theme) => theme.name === "light" || theme.name === "dark")
+
+        console.log(`Found ${themesToApply.length} themes to apply`)
 
         // Step 2: Generate a separate file for each theme's token values
         const themeFiles = themesToApply.map((theme) => {
