@@ -19,7 +19,12 @@ import { ThemeExportStyle, TokenNameStructure } from "../../config"
 /**
  * Creates a value object for a token, either as a simple value or themed values
  */
-function createTokenValue(value: string, token: Token, theme?: TokenTheme): any {
+function createTokenValue(
+  value: string,
+  token: Token,
+  theme?: TokenTheme,
+  collections: Array<DesignSystemCollection> = []
+): any {
   const baseValue = value.replace(/['"]/g, "")
   const description =
     token.description && exportConfiguration.showDescriptions ? { description: token.description.trim() } : {}
@@ -51,7 +56,8 @@ function createTokenValue(value: string, token: Token, theme?: TokenTheme): any 
     // Add description last
     return {
       ...valueObject,
-      ...description
+      ...description,
+      collection: collections?.find((c) => c.persistentId === token.collectionId)?.name
     }
   }
 
@@ -59,7 +65,8 @@ function createTokenValue(value: string, token: Token, theme?: TokenTheme): any 
   return {
     value: baseValue,
     type: tokenType,
-    ...description
+    ...description,
+    collection: collections?.find((c) => c.persistentId === token.collectionId)?.name
   }
 }
 
@@ -190,7 +197,7 @@ function processTokensToObject(
     const hierarchicalObject = createHierarchicalStructure(
       token.tokenPath || [],
       token.name,
-      createTokenValue(value, token, theme),
+      createTokenValue(value, token, theme, collections),
       token,
       collections
     )
@@ -399,16 +406,16 @@ export function combinedStyleOutputFile(
 export function combinedStyleOutputFileWithCollection(
   tokens: Array<Token>,
   tokenGroups: Array<TokenGroup>,
-  themePath: string = "",
-  theme?: TokenTheme,
-  collections: Array<DesignSystemCollection> = []
+  collectionName: string,
+  theme: TokenTheme,
+  allCollections: Array<DesignSystemCollection> = []
 ): OutputTextFile | null {
   // Store original tokens for reference resolution
   const originalTokens = [...tokens]
 
   // Process all tokens into a single structured object
   // Pass the original tokens array for reference resolution
-  const tokenObject = processTokensToObject(tokens, tokenGroups, theme, collections, originalTokens)
+  const tokenObject = processTokensToObject(tokens, tokenGroups, theme, allCollections, originalTokens)
   if (!tokenObject) {
     console.log("No token object generated")
     return null
@@ -418,8 +425,8 @@ export function combinedStyleOutputFileWithCollection(
   const content = JSON.stringify(tokenObject, null, exportConfiguration.indent)
 
   // For single file mode, themed files go directly in root with theme-based names
-  const fileName = themePath ? `tokens.${themePath}.json` : "tokens.json"
-  const relativePath = "./" // Put files directly in root folder
+  const fileName = `${collectionName}.json`
+  const relativePath = `./${theme.codeName}` // Put files directly in root folder
 
   // Create and return the output file
   return FileHelper.createTextFile({
