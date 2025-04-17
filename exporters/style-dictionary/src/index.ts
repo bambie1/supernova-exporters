@@ -71,12 +71,22 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
       tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "semanticTheme"
   )
 
+  const componentWebTokens = tokens.filter(
+    (token) =>
+      tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "componentWeb"
+  )
+
   const semanticThemeFiles = semanticThemesToApply.map((theme) => {
     const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, semanticThemeTokens, [theme])
     return combinedStyleOutputFileWithCollection(themedTokens, tokenGroups, "semanticTheme", theme, tokenCollections)
   })
 
-  return processOutputFiles(semanticThemeFiles)
+  const componentWebFiles = semanticThemesToApply.map((theme) => {
+    const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, componentWebTokens, [theme])
+    return combinedStyleOutputFileWithCollection(themedTokens, tokenGroups, "componentWeb", theme, tokenCollections)
+  })
+
+  return processOutputFiles([...semanticThemeFiles, ...componentWebFiles])
 
   // Process themes if specified
   if (context.themeIds && context.themeIds.length > 0) {
