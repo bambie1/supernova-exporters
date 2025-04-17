@@ -66,7 +66,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     (theme) => (theme.codeName === "light" || theme.codeName === "dark") && theme.brandId === context.brandId
   )
   const gridThemesToApply = themes.filter(
-    (theme) => theme.codeName === "desktop" || (theme.codeName === "mobile" && theme.brandId === context.brandId)
+    (theme) => (theme.codeName === "desktop" || theme.codeName === "mobile") && theme.brandId === context.brandId
   )
 
   console.log({ gridThemesToApply: gridThemesToApply.map((theme) => theme.codeName) })
