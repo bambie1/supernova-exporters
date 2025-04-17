@@ -62,60 +62,20 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
   const themes = await sdk.tokens.getTokenThemes(remoteVersionIdentifier)
   // themesToApply: light and dark
-  const themesToApply = themes.filter((theme) => theme.name === "light" || theme.name === "dark")
+  const semanticThemesToApply = themes.filter((theme) => theme.name === "light" || theme.name === "dark")
 
-  tokens.map(async (token) => {
-    const collection = tokenCollections.find((collection) => collection.persistentId === token.collectionId)
+  const semanticThemeTokens = tokens.filter(
+    (token) =>
+      tokenCollections.find((collection) => collection.persistentId === token.collectionId)?.name === "semanticTheme"
+  )
 
-    if (!collection) return
-
-    switch (collection.name) {
-      case "semanticTheme":
-        // Step 2: Generate a separate file for each theme's token values
-        const themeFiles = themesToApply.map((theme) => {
-          // Apply the current theme to all tokens
-          const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, tokens, [theme])
-
-          // Temporarily disable base value export to prevent duplicates in themed output
-          const originalExportBaseValues = exportConfiguration.exportBaseValues
-          exportConfiguration.exportBaseValues = false
-
-          const originalUseReferences = exportConfiguration.useReferences
-          exportConfiguration.useReferences = false
-
-          // Generate the themed version of all tokens
-          const file = combinedStyleOutputFileWithCollection(themedTokens, tokenGroups, "", theme, tokenCollections)
-
-          // Restore the original base value export setting
-          exportConfiguration.exportBaseValues = originalExportBaseValues
-          exportConfiguration.useReferences = originalUseReferences
-          return file
-        })
-
-        // Step 3: Merge all generated files (base + themed) into a single output
-        // The merge preserves the nested structure while combining base and themed values
-        const mergedFile = themeFiles.reduce((merged, file) => {
-          if (!file) return merged
-          if (!merged) return file
-
-          // Deep merge preserves the nested structure and combines theme variations
-          const mergedContent = deepMerge(JSON.parse(merged.content), JSON.parse(file.content))
-
-          // Return a new file with merged content
-          return {
-            ...file,
-            content: JSON.stringify(mergedContent, null, exportConfiguration.indent)
-          }
-        }, null)
-
-        console.log({ mergedFile })
-
-        return processOutputFiles([mergedFile])
-
-      default:
-        break
-    }
+  const semanticThemeFiles = semanticThemesToApply.map((theme) => {
+    const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, semanticThemeTokens, [theme])
+    const themePath = ThemeHelper.getThemeIdentifier(theme, StringCase.camelCase)
+    return combinedStyleOutputFile(themedTokens, tokenGroups, themePath, theme, tokenCollections)
   })
+
+  return processOutputFiles(semanticThemeFiles)
 
   // Process themes if specified
   if (context.themeIds && context.themeIds.length > 0) {
