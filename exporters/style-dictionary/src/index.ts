@@ -60,11 +60,15 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     tokenGroups = tokenGroups.filter((tokenGroup) => tokenGroup.brandId === brand.id)
   }
 
+  tokens.map((token) => {
+    if (token.tokenType === TokenType.fontFamily) {
+      console.log({ token })
+    }
+  })
+
   // Process themes if specified
   if (context.themeIds && context.themeIds.length > 0) {
     const themes = await sdk.tokens.getTokenThemes(remoteVersionIdentifier)
-    console.log({ themes })
-    console.log({ tokenCollections })
 
     const themesToApply = context.themeIds.map((themeId) => {
       const theme = themes.find((theme) => theme.id === themeId || theme.idInVersion === themeId)
