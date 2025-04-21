@@ -29,6 +29,10 @@ function createTokenValue(
   const description =
     token.description && exportConfiguration.showDescriptions ? { description: token.description.trim() } : {}
 
+  const collection = collections?.find((c) => c.persistentId === token.collectionId)?.name
+
+  console.log({ collection })
+
   // Get the token type, forcing a return value even when prefixes are disabled
   const tokenType = getTokenPrefix(token.tokenType, true)
 
@@ -57,7 +61,7 @@ function createTokenValue(
     return {
       ...valueObject,
       ...description,
-      collection: collections?.find((c) => c.persistentId === token.collectionId)?.name || "no collection"
+      collection: "no collection"
     }
   }
 
@@ -65,7 +69,7 @@ function createTokenValue(
   return {
     value: baseValue,
     type: tokenType,
-    collection: collections?.find((c) => c.persistentId === token.collectionId)?.name || "no collection",
+    collection: "no collection",
     ...description
   }
 }
