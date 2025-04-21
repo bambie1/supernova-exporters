@@ -31,15 +31,6 @@ function createTokenValue(
 
   const collection = collections?.find((c) => c.persistentId === token.collectionId)?.name
 
-  collections.map((c) => {
-    console.log({
-      collectionName: c.name,
-      persistentId: c.persistentId,
-      id: c.id,
-      tokenCollectionId: token.collectionId
-    })
-  })
-
   // Get the token type, forcing a return value even when prefixes are disabled
   const tokenType = getTokenPrefix(token.tokenType, true)
 

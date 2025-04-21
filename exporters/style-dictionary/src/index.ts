@@ -80,6 +80,13 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     const themeFiles = gridThemesToApply.map((gridTheme) => {
       // Apply the current theme to all tokens
       const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, nicheTokens, [theme, gridTheme])
+      const expandedThemedTokens = themedTokens.map(
+        (token) =>
+          ({
+            ...token,
+            collectionId: tokens.find((t) => t.id === token.id)?.collectionId
+          }) as Token
+      )
 
       // temporarily set export as to nested themes for the semantic grid
       const originalExportAs = exportConfiguration.exportThemesAs
@@ -87,7 +94,7 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
       // Generate the themed version of all tokens
       const file = combinedStyleOutputFileWithCollection(
-        themedTokens,
+        expandedThemedTokens,
         tokenGroups,
         collectionName,
         gridTheme,
@@ -122,9 +129,16 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
 
   const generateNormalFile = (theme: TokenTheme, nicheTokens: Array<Token>, collectionName: string) => {
     const themedTokens = sdk.tokens.computeTokensByApplyingThemes(tokens, nicheTokens, [theme])
+    const expandedThemedTokens = themedTokens.map(
+      (token) =>
+        ({
+          ...token,
+          collectionId: tokens.find((t) => t.id === token.id)?.collectionId
+        }) as Token
+    )
 
     return combinedStyleOutputFileWithCollection(
-      themedTokens,
+      expandedThemedTokens,
       tokenGroups,
       collectionName,
       theme,
