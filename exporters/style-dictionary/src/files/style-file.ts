@@ -61,7 +61,7 @@ function createTokenValue(
     return {
       ...valueObject,
       ...description,
-      collection: "no collection"
+      collection
     }
   }
 
@@ -69,7 +69,7 @@ function createTokenValue(
   return {
     value: baseValue,
     type: tokenType,
-    collection: "no collection",
+    collection,
     ...description
   }
 }
