@@ -31,7 +31,14 @@ function createTokenValue(
 
   const collection = collections?.find((c) => c.persistentId === token.collectionId)?.name
 
-  console.log({ collection, length: collections?.length })
+  collections.map((c) => {
+    console.log({
+      collectionName: c.name,
+      persistentId: c.persistentId,
+      id: c.id,
+      tokenCollectionId: token.collectionId
+    })
+  })
 
   // Get the token type, forcing a return value even when prefixes are disabled
   const tokenType = getTokenPrefix(token.tokenType, true)
@@ -375,8 +382,6 @@ export function combinedStyleOutputFileWithCollection(
 ): OutputTextFile | null {
   // Store original tokens for reference resolution
   const originalTokens = [...tokens]
-
-  console.log({ tokenCollectionsLength: tokenCollections.length })
 
   // Process all tokens into a single structured object
   // Pass the original tokens array for reference resolution
