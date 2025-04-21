@@ -51,15 +51,15 @@ function createTokenValue(
     if (theme) {
       valueObject[ThemeHelper.getThemeIdentifier(theme, StringCase.kebabCase)] = {
         value: baseValue,
-        type: tokenType
+        type: tokenType,
+        collection
       }
     }
 
     // Add description last
     return {
       ...valueObject,
-      ...description,
-      collection
+      ...description
     }
   }
 
