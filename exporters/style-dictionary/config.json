@@ -2,7 +2,7 @@
   {
     "key": "tokenNameStructure",
     "type": "enum",
-    "default": "collectionPathAndName",
+    "default": "pathAndName",
     "title": "Token path structure",
     "description": "Control which hierarchy levels are included in the token path.",
     "category": "Token names",
