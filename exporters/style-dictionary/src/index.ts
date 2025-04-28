@@ -152,9 +152,13 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
   const semanticBrandTokens = getTokensByCollection("semanticBrand")
   const semanticGridTokens = getTokensByCollection("semanticGrid")
   const componentWebTokens = getTokensByCollection("componentWeb")
+  const componentNativeTokens = getTokensByCollection("componentNative")
 
   const componentWebColorTokens = componentWebTokens.filter(({ tokenType }) => tokenType === TokenType.color)
   const componentWebNonColorTokens = componentWebTokens.filter(({ tokenType }) => tokenType !== TokenType.color)
+
+  const componentNativeColorTokens = componentNativeTokens.filter(({ tokenType }) => tokenType === TokenType.color)
+  const componentNativeNonColorTokens = componentNativeTokens.filter(({ tokenType }) => tokenType !== TokenType.color)
 
   const semanticThemeFiles = semanticThemesToApply.map((theme) =>
     generateNormalFile(theme, semanticThemeTokens, "semanticTheme")
@@ -172,8 +176,16 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     generateNormalFile(theme, componentWebColorTokens, "componentWeb-color")
   )
 
+  const componentNativeColorFiles = semanticThemesToApply.map((theme) =>
+    generateNormalFile(theme, componentNativeColorTokens, "componentNative-color")
+  )
+
   const componentWebNonColorFiles = semanticThemesToApply.flatMap((semanticTheme) =>
     generateNestedFile(semanticTheme, componentWebNonColorTokens, "componentWeb")
+  )
+
+  const componentNativeNonColorFiles = semanticThemesToApply.flatMap((semanticTheme) =>
+    generateNestedFile(semanticTheme, componentNativeNonColorTokens, "componentNative")
   )
 
   const semanticGridFiles = semanticThemesToApply.flatMap((semanticTheme) =>
@@ -186,6 +198,8 @@ Pulsar.export(async (sdk: Supernova, context: PulsarContext): Promise<Array<AnyO
     ...semanticBrandFiles,
     ...semanticGridFiles,
     ...componentWebColorFiles,
-    ...componentWebNonColorFiles
+    ...componentWebNonColorFiles,
+    ...componentNativeColorFiles,
+    ...componentNativeNonColorFiles
   ])
 })
